@@ -1,0 +1,55 @@
+{
+  "name": "pangolinfo-datascaler-mcp",
+  "version": "0.1.0",
+  "description": "Pangolin DataScaler MCP server - white-label brand social-media insight tools (brands, refresh, posts, sentiment, voice-share, competitors, risk-alerts, analyze) for AI assistants via Model Context Protocol.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Pangolinfo <support@pangolinfo.com>",
+  "homepage": "https://www.pangolinfo.com/?sourceTag=mcp_",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pangolinfo/pangolinfo-datascaler-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pangolinfo/pangolinfo-datascaler-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "social-media",
+    "brand-insight",
+    "ai-tools",
+    "claude",
+    "datascaler"
+  ],
+  "bin": {
+    "pangolinfo-datascaler-mcp": "./dist/server.mjs"
+  },
+  "main": "./dist/server.mjs",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --format=esm --outfile=dist/server.mjs --banner:js=\"#!/usr/bin/env node\"",
+    "dev": "tsx src/server.ts",
+    "start": "node dist/server.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "esbuild": "^0.23.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
