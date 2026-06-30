@@ -8,6 +8,7 @@
 import { z } from "zod";
 
 import type { Tool } from "./_types.js";
+import { buildQuery } from "./_query.js";
 import { t } from "../i18n.js";
 
 const inputSchema = z.object({
@@ -44,14 +45,7 @@ Don't use: when you know the brandId and want detail (use get_brand).`,
   inputSchema,
   async execute(input, ctx) {
     ctx.logger.info(`list_brands: limit=${input.limit ?? ""} offset=${input.offset ?? ""}`);
-    const qs = buildQuery(input);
+    const qs = buildQuery({ limit: input.limit, offset: input.offset });
     return ctx.client.get(`/api/v1/social/brands${qs}`);
   },
 };
-
-function buildQuery(input: { limit?: number; offset?: number }): string {
-  const parts: string[] = [];
-  if (input.limit != null) parts.push(`limit=${input.limit}`);
-  if (input.offset != null) parts.push(`offset=${input.offset}`);
-  return parts.length ? `?${parts.join("&")}` : "";
-}

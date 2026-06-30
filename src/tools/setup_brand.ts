@@ -21,18 +21,28 @@ const inputSchema = z.object({
     .optional()
     .describe(
       t({
-        zh: "监测平台列表,如 ['youtube','x','tiktok','trustpilot']。可先用 prepare_brand_onboarding 拿建议。",
-        en: "Platforms to monitor, e.g. ['youtube','x','tiktok','trustpilot']. Use prepare_brand_onboarding for suggestions.",
+        zh: "监测平台列表,如 ['youtube','x','tiktok','trustpilot']。可先用 prepare_brand_onboarding 拿建议。注:传空数组 [] 会清空该项;想保持不变就别传这个字段。",
+        en: "Platforms to monitor, e.g. ['youtube','x','tiktok','trustpilot']. Use prepare_brand_onboarding for suggestions. Note: passing [] clears this field; omit the field to keep it unchanged.",
       }),
     ),
   keywords: z
     .array(z.string())
     .optional()
-    .describe(t({ zh: "监测关键词(可选)。", en: "Keywords to monitor (optional)." })),
+    .describe(
+      t({
+        zh: "监测关键词(可选)。注:传空数组 [] 会清空该项;想保持不变就别传这个字段。",
+        en: "Keywords to monitor (optional). Note: passing [] clears this field; omit the field to keep it unchanged.",
+      }),
+    ),
   competitors: z
     .array(z.string())
     .optional()
-    .describe(t({ zh: "竞品品牌(可选,用于声量份额/竞品对比)。", en: "Competitor brands (optional)." })),
+    .describe(
+      t({
+        zh: "竞品品牌(可选,用于声量份额/竞品对比)。注:传空数组 [] 会清空该项;想保持不变就别传这个字段。",
+        en: "Competitor brands (optional). Note: passing [] clears this field; omit the field to keep it unchanged.",
+      }),
+    ),
   idempotencyKey: z
     .string()
     .optional()

@@ -8,6 +8,7 @@
 import { z } from "zod";
 
 import type { Tool } from "./_types.js";
+import { buildQuery } from "./_query.js";
 import { t } from "../i18n.js";
 
 const inputSchema = z.object({
@@ -72,23 +73,14 @@ Don't use: to find posts by meaning/semantics (use find_posts_about); for aggreg
   inputSchema,
   async execute(input, ctx) {
     ctx.logger.info(`search_brand_posts: brandId=${input.brandId} platform=${input.platform ?? ""}`);
-    const qs = buildQuery(input);
+    const qs = buildQuery({
+      platform: input.platform,
+      sentiment: input.sentiment,
+      sortBy: input.sortBy,
+      limit: input.limit,
+    });
     return ctx.client.get(
       `/api/v1/social/brands/${encodeURIComponent(input.brandId)}/posts${qs}`,
     );
   },
 };
-
-function buildQuery(input: {
-  platform?: string;
-  sentiment?: string;
-  sortBy?: string;
-  limit?: number;
-}): string {
-  const parts: string[] = [];
-  if (input.platform != null) parts.push(`platform=${encodeURIComponent(input.platform)}`);
-  if (input.sentiment != null) parts.push(`sentiment=${encodeURIComponent(input.sentiment)}`);
-  if (input.sortBy != null) parts.push(`sortBy=${encodeURIComponent(input.sortBy)}`);
-  if (input.limit != null) parts.push(`limit=${input.limit}`);
-  return parts.length ? `?${parts.join("&")}` : "";
-}

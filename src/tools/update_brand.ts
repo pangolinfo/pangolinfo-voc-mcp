@@ -25,8 +25,8 @@ const inputSchema = z.object({
     .optional()
     .describe(
       t({
-        zh: "监测关键词列表(可选)。传则整体替换。",
-        en: "Monitor keywords (optional). Replaces the whole list if provided.",
+        zh: "监测关键词列表(可选)。传则整体替换。注:传空数组 [] 会清空该项;想保持不变就别传这个字段。",
+        en: "Monitor keywords (optional). Replaces the whole list if provided. Note: passing [] clears this field; omit the field to keep it unchanged.",
       }),
     ),
   competitors: z
@@ -34,8 +34,8 @@ const inputSchema = z.object({
     .optional()
     .describe(
       t({
-        zh: "竞品列表(可选)。传则整体替换。",
-        en: "Competitors (optional). Replaces the whole list if provided.",
+        zh: "竞品列表(可选)。传则整体替换。注:传空数组 [] 会清空该项;想保持不变就别传这个字段。",
+        en: "Competitors (optional). Replaces the whole list if provided. Note: passing [] clears this field; omit the field to keep it unchanged.",
       }),
     ),
   monitorPlatforms: z
@@ -43,8 +43,8 @@ const inputSchema = z.object({
     .optional()
     .describe(
       t({
-        zh: "监测平台列表(可选)。传则整体替换。",
-        en: "Monitor platforms (optional). Replaces the whole list if provided.",
+        zh: "监测平台列表(可选)。传则整体替换。注:传空数组 [] 会清空该项;想保持不变就别传这个字段。",
+        en: "Monitor platforms (optional). Replaces the whole list if provided. Note: passing [] clears this field; omit the field to keep it unchanged.",
       }),
     ),
 });

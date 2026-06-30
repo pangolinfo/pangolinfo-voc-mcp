@@ -261,3 +261,52 @@ semantic/onboarding/summary/analyze/refresh/list_brands)。响应结构 `{ok,dat
 4. **那条 `api_base ⚠️见下` 警告**：用户转述时被截断，实测基本路径无碍，但完整警告内容待补（可能涉及 staging↔prod 差异）。
 5. **零售用量回调（webhook + HMAC）**：callback secret 已拿到，逻辑未做（契约 §8，可作下一阶段）。
 6. **端到端联调**：Java 全栈起服务 + MCP 连真实 staging 跑通整链（凭证已具备，可做）。
+
+---
+
+## 13. 自审 Review 修复（2026-06-30，agent 对抗性自审 + 用户决策）
+
+跑端到端演示揪出 1 个 bug（analyze 60s 超时，已修），随后做了一轮对抗性自审，发现 6 个点：
+
+| 级别 | 问题 | 决策 | 状态 |
+|---|---|---|---|
+| 🔴 P1-1 | 扣费时序：先扣后调，调用失败钱不退（实测 refresh/analyze 采集中返 409 会白扣） | **不修**（用户定:受理即扣不退是产品策略,防刷+上游可能已计费） | 保留 A1 |
+| 🟡 P2-1 | Java `enc()` 用 URLEncoder 编 path 段（语义错,空格→+） | 修 | ✅ 拆 `encPath()` 用 `UriUtils.encodePathSegment`,13 处 path 改用 |
+| 🟡 P2-2 | 丢弃了 DataScaler 错误体的 `nextActions`/`userMessageEn` 引导 | 修 | ✅ `buildGuidance()` 把 userMessage+nextActions 工具名拼进异常 message 透传给 AI |
+| 🟡 P2-3 | sentiment 与 metrics 功能重叠,AI 可能困惑 | 修 | ✅ 工具描述说清:占比用 metrics,要驱动词归因才用 sentiment |
+| 🟢 P3-1 | MCP 8 个工具各写一份 buildQuery | 修 | ✅ 抽 `tools/_query.ts` 公共函数,8 处复用 |
+| 🟢 P3-2 | idempotencyKey 透传了但 Java 未做幂等去重(重试会双扣) | **不修**(YAGNI,低频重操作概率低) | ✅ charge() 加 TODO 注释,留 Redis setIfAbsent 方案 |
+| ~~P1-2~~ | ~~find_posts_about query 缺校验~~ | 误报 | 已有 .min(1) |
+
+另:`client.ts` analyze 超时修复 —— 默认 60s deadline 误杀同步 analyze(实测 30-60s+),
+改 `post` 支持 `opts.deadlineMs`,analyze_brand 传 180s。已验证(mock 延迟 70s 撑过)。
+
+两侧改后均重新编译通过(Java BUILD SUCCESS / MCP tsc+build+冒烟 17 工具)。
+
+---
+
+## 14. 第二轮全面 Review 修复(2026-06-30,5-agent 并行多维度审 + 手动交叉)
+
+方法:Workflow 起 5 个 agent 并行从安全/并发/资源/契约/MCP质量审(22 条原始发现)+ 手动深挖,去重交叉。
+这轮挖出**架构级 reactive 反模式**(第一轮偏逻辑 bug 漏了)。
+
+### P1(架构级,已全修)—— social 用 WebFlux 但混了阻塞操作跑在 Netty event-loop
+| 问题 | 后果 | 修法 |
+|---|---|---|
+| **P1-A** charge() 阻塞 JDBC(@Transactional+FOR UPDATE)在 Mono 装配期 event-loop 同步执行 | 高并发耗尽事件循环 + 装配期扣费时序错位 | `chargeThen()`:`Mono.fromCallable(doCharge).subscribeOn(boundedElastic).then(upstream)`,订阅期执行 |
+| **P1-B** 401 重试链里 forceRefresh→.block() 在 reactor-http-nio 线程 → **Reactor 直接抛 IllegalStateException,401 容错 100% 自毁** | token 永远换不掉 | TokenManager 全反应式,exchange 用 `getAccessToken().flatMap`,401 走 `forceRefresh(staleToken).then(重试)` |
+| **P1-C** getAccessToken().block() 冷缓存时装配期 event-loop 同步执行 | 同 P1-B | getAccessToken() 返回 `Mono<String>`,内部 fetchToken 非阻塞 |
+| **P1-D** charge() 的 `if(!ok) throw SOCIAL_QUOTA_EXCEEDED` 是**死代码**(deductBalance 余额不足直接抛 BALANCE_INSUFFICIENT,从不返 false) | 用户拿不到社媒额度友好话术 | doCharge() try/catch 捕获 BALANCE_INSUFFICIENT/ACCOUNT_ALREADY_EXPIRED 重包成 SOCIAL_QUOTA_EXCEEDED |
+
+> TokenManager 重写为全反应式:AtomicReference<TokenSnapshot> 原子发布(修 torn read)+ 单飞刷新
+> (refreshInFlight CAS,修 thundering herd)+ token 端点错误细分(401/403 凭证 vs 5xx)+ 日志脱敏 + timeout 兜底。
+> Reactor 3.4.x 无 cacheInvalidateIf,改用 AtomicReference 快照 + 手动单飞。
+> ⚠️ 自审又发现 doFinally 的 set(null) 会误清后来者的 in-flight,改 compareAndSet(self, null)。
+
+### P2(已修):checkBusinessError 用 getBoolean 替 getBooleanValue(畸形响应不静默吞)。
+
+### P3(已修):SocialService Javadoc 4→3 个扣费;MCP days 类型 5 个 GET 工具 string→number(AI 跨工具不再踩 BAD_INPUT);数组字段空数组清空警告;analyze 超时提示。
+
+### 不修(决策):P1-原扣费失败不退(A1 产品策略)、幂等(YAGNI)、若干 P3 纵深防御(social 链路基本不可达)。
+
+验证:Java BUILD SUCCESS;MCP tsc+build+冒烟 17 工具;**staging e2e 实测 4 工具通过,days=30(number) 正常**。

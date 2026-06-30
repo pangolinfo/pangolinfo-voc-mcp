@@ -9,6 +9,7 @@
 import { z } from "zod";
 
 import type { Tool } from "./_types.js";
+import { buildQuery } from "./_query.js";
 import { t } from "../i18n.js";
 
 const inputSchema = z.object({
@@ -55,16 +56,9 @@ Don't use: for structured filters like platform/sentiment (use search_brand_post
   inputSchema,
   async execute(input, ctx) {
     ctx.logger.info(`find_posts_about: brandId=${input.brandId} query=${input.query}`);
-    const qs = buildQuery(input);
+    const qs = buildQuery({ query: input.query, limit: input.limit });
     return ctx.client.get(
       `/api/v1/social/brands/${encodeURIComponent(input.brandId)}/posts/semantic${qs}`,
     );
   },
 };
-
-function buildQuery(input: { query: string; limit?: number }): string {
-  const parts: string[] = [];
-  parts.push(`query=${encodeURIComponent(input.query)}`);
-  if (input.limit != null) parts.push(`limit=${input.limit}`);
-  return parts.length ? `?${parts.join("&")}` : "";
-}

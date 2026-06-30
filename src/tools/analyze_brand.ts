@@ -62,7 +62,7 @@ export const analyzeBrand: Tool<typeof inputSchema> = {
   name: "analyze_brand",
   description: t({
     zh: `[深度分析 · 扣费 · 同步] 对某品牌的社媒数据自由提问,直接返回合成报告。
-同步:本工具直接返回 report 正文(不是 jobId,不用轮询)。该调用可能耗时较久,请耐心等待返回。
+同步:本工具直接返回 report 正文(不是 jobId,不用轮询),可能耗时较久(最长约180s),请耐心等待。若你的运行环境更早超时,不要立刻重试(后端可能仍在生成且扣费不退),应先确认上次是否已产出。
 扣费:拿到报告即扣不退。
 前置:品牌需已采集完成 —— 若报 data not ready / refresh in progress,先 refresh_brand 并用 get_refresh_progress 等它完成,再分析。
 提示词覆盖:systemPromptOverride 只能定制输出口吻/结构/角色,不能改数据怎么取、指标怎么算(由 DataScaler 保证一致)。
@@ -70,7 +70,7 @@ Returns: { report, usage, ... }(report 是报告正文)。
 Use when: 用户要基于社媒数据做策略/选号/洞察类的开放问题。
 Don't use: 只要现成指标/帖子(用 get_brand_metrics/search_brand_posts,免费);只要一句话摘要(用 get_brand_summary,免费)。`,
     en: `[Deep analysis · CHARGED · sync] Ask a free-form question over a brand's social data → returns the synthesized report directly.
-Sync: returns the report body directly (not a jobId, no polling). May take a while — wait for the response.
+Sync: returns the report body directly (not a jobId, no polling). May take a while (up to ~180s) — wait for the response. If your host times out earlier, do NOT immediately retry (the backend may still be generating and charges are non-refundable) — confirm whether the previous run produced a result first.
 Charge: charged once the report is returned, non-refundable.
 Precondition: brand must have collected data — if 'data not ready' / 'refresh in progress', run refresh_brand and wait via get_refresh_progress first.
 Prompt override: systemPromptOverride customizes only tone/structure/role, NOT data retrieval or metric math.

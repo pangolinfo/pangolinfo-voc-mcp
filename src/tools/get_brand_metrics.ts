@@ -8,6 +8,7 @@
 import { z } from "zod";
 
 import type { Tool } from "./_types.js";
+import { buildQuery } from "./_query.js";
 import { t } from "../i18n.js";
 
 const inputSchema = z.object({
@@ -21,12 +22,14 @@ const inputSchema = z.object({
       }),
     ),
   days: z
-    .string()
+    .number()
+    .int()
+    .positive()
     .optional()
     .describe(
       t({
-        zh: "时间窗(天,可选)。例:'7'、'30'。不传用后端默认。",
-        en: "Time window in days (optional), e.g. '7', '30'. Server default if omitted.",
+        zh: "时间窗(天,可选)。例:7、30。不传用后端默认。",
+        en: "Time window in days (optional), e.g. 7, 30. Server default if omitted.",
       }),
     ),
 });
@@ -48,15 +51,9 @@ Don't use: for individual posts (use search_brand_posts); for sentiment split (u
   inputSchema,
   async execute(input, ctx) {
     ctx.logger.info(`get_brand_metrics: brandId=${input.brandId} days=${input.days ?? ""}`);
-    const qs = buildQuery(input);
+    const qs = buildQuery({ days: input.days });
     return ctx.client.get(
       `/api/v1/social/brands/${encodeURIComponent(input.brandId)}/metrics${qs}`,
     );
   },
 };
-
-function buildQuery(input: { days?: string }): string {
-  const parts: string[] = [];
-  if (input.days != null) parts.push(`days=${encodeURIComponent(input.days)}`);
-  return parts.length ? `?${parts.join("&")}` : "";
-}
