@@ -6,7 +6,8 @@
  *
  * 默认接入走【知识空间】:prepare_space → create_space。setup_brand 是完整品牌(高级)。
  * 扣费工具:create_space / refresh_brand / setup_brand(采集,按 estimatedCredits) + analyze_brand(1 credit)。
- * 其余全免费(含 prepare_space / get_brand_summary / 所有只读 / context / usage / diagnose / wait)。
+ * 其余全免费(含 prepare_space / get_brand_summary / 所有只读 / context / diagnose / wait / get_billing_rules)。
+ * 注:get_usage 已移除(暴露 DataScaler 批发账户用量,白标不对外;用户用量到 pangolinfo.com 查)。
  *
  * 加新 tool:实现 <name>.ts → 在此 import → append 到数组。
  */
@@ -17,8 +18,8 @@ import { socialCapabilities } from "./social_capabilities.js";
 // 上下文/账户(免费)
 import { getContext } from "./get_context.js";
 import { suggestNextActions } from "./suggest_next_actions.js";
-import { getUsage } from "./get_usage.js";
 import { explainError } from "./explain_error.js";
+import { getBillingRules } from "./get_billing_rules.js";
 // 知识空间(默认接入)
 import { prepareSpace } from "./prepare_space.js";
 import { createSpace } from "./create_space.js";
@@ -50,8 +51,8 @@ export const tools: Tool[] = [
   // 上下文/账户
   getContext,
   suggestNextActions,
-  getUsage,
   explainError,
+  getBillingRules,
   // 知识空间(默认接入)
   prepareSpace,
   createSpace,

@@ -33,8 +33,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
         en: "Pangolin brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot, plus AI deep analysis.",
       }),
       onboarding: t({
-        zh: "默认走【知识空间】(轻量快道):prepare_space(出计划+费用,免费) → 用户确认行业(必选)+渠道+深度 → create_space(建空间+首采,扣费)。只有要竞品对比/官网/定时监测才用 setup_brand(完整品牌)。",
-        en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + depth → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring.",
+        zh: "默认走【知识空间】(轻量快道):prepare_space(出计划+费用,免费) → 用户确认行业(必选)+渠道+页数 → create_space(建空间+首采,扣费)。只有要竞品对比/官网/定时监测才用 setup_brand(完整品牌)。",
+        en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + pages → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring.",
       }),
       charging: t({
         zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按 estimatedCredits×零售倍率扣积分,采集完成时结算(受理时按预估扣)。analyze_brand 每次 1 credit(成功才扣)。prepare_space/get_brand_summary 免费。积分公式:(1+竞品)×渠道×页数×0.25。",
@@ -47,8 +47,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
       tools: [
         { name: "get_context", group: "context", charged: false },
         { name: "suggest_next_actions", group: "context", charged: false },
-        { name: "get_usage", group: "context", charged: false },
         { name: "explain_error", group: "context", charged: false },
+        { name: "get_billing_rules", group: "context", charged: false },
         { name: "prepare_space", group: "onboarding", charged: false },
         { name: "create_space", group: "onboarding", charged: true, async: true },
         { name: "list_brands", group: "brand", charged: false },
@@ -72,8 +72,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
       ],
       workflows: [
         t({
-          zh: "看某品牌/话题在讨论什么(默认):prepare_space(出计划+费用) → 确认行业+渠道+深度 → create_space(扣费,返 jobId) → wait_for_refresh/get_refresh_progress(等采集) → get_brand_metrics/analyze_brand。",
-          en: "Explore a brand/topic (default): prepare_space → confirm industry+platforms+depth → create_space (charged, jobId) → wait_for_refresh/get_refresh_progress → get_brand_metrics/analyze_brand.",
+          zh: "看某品牌/话题在讨论什么(默认):prepare_space(出计划+费用) → 确认行业+渠道+页数 → create_space(扣费,返 jobId) → wait_for_refresh/get_refresh_progress(等采集) → get_brand_metrics/analyze_brand。",
+          en: "Explore a brand/topic (default): prepare_space → confirm industry+platforms+pages → create_space (charged, jobId) → wait_for_refresh/get_refresh_progress → get_brand_metrics/analyze_brand.",
         }),
         t({
           zh: "刷新已有品牌:diagnose_brand(看要不要采) → refresh_brand(扣费) → get_refresh_progress(等完成) → 读数据。",
