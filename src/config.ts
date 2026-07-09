@@ -9,10 +9,12 @@
  * 所以 DEFAULT_SCRAPE_BASE 与主 MCP 一致。
  */
 
+import { SERVER_VERSION } from "./version.js";
+
 export const CONFIG = {
   DEFAULT_API_BASE: "https://extapi.pangolinfo.com",
   DEFAULT_SCRAPE_BASE: "https://scrapeapi.pangolinfo.com",
   CONFIG_FILE_PATH: "~/.pangolinfo/config.json",
-  USER_AGENT: "pangolinfo-datascaler-mcp/1.0",
+  USER_AGENT: `pangolinfo-datascaler-mcp/${SERVER_VERSION}`,
   WEBSITE_URL: "https://www.pangolinfo.com",
 } as const;

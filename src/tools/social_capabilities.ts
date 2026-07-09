@@ -33,12 +33,12 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
         en: "Pangolin brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot, plus AI deep analysis.",
       }),
       onboarding: t({
-        zh: "默认走【知识空间】(轻量快道):prepare_space(出计划+费用,免费) → 用户确认行业(必选)+渠道+页数 → create_space(建空间+首采,扣费)。只有要竞品对比/官网/定时监测才用 setup_brand(完整品牌)。",
-        en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + pages → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring.",
+        zh: "默认走【知识空间】(轻量快道):prepare_space(出计划+费用,免费) → 用户确认行业(必选)+渠道+页数 → create_space(建空间+首采,扣费)。只有要竞品对比/官网/定时监测/Amazon 评论才用 setup_brand(完整品牌);Amazon 评论必须传 amazonProducts。",
+        en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + pages → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring/Amazon reviews; Amazon reviews require amazonProducts.",
       }),
       charging: t({
-        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×渠道数×关键词数×页数×12积分计费,受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣;命中套餐 AI 额度则 0)。prepare_space/get_brand_summary 免费。",
-        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × channelCount × keywordCount × pages × 12 points, recorded by estimate after acceptance. analyze_brand = 600 points on success (0 if within plan AI quota). prepare_space/get_brand_summary are free.",
+        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×渠道数×关键词数×页数×12积分计费,采集受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣;命中套餐 AI 额度则 0)。prepare_space/get_brand_summary 免费。",
+        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × channelCount × keywordCount × pages × 12 points, recorded by estimate after collection acceptance. analyze_brand = 600 points on success (0 if within plan AI quota). prepare_space/get_brand_summary are free.",
       }),
       asyncModel: t({
         zh: "采集是异步的:create_space/refresh_brand/setup_brand(首采)返回 jobId,用 get_refresh_progress(jobId) 轮询到 completed/partial 再读数据,或 wait_for_refresh 短等。绝不原地干等或重复发起。analyze_brand 是【同步】的,直接返回报告(可能耗时,耐心等)。",
@@ -86,16 +86,16 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
       ],
       notes: [
         t({
-          zh: "品牌数据按用户隔离,只看得到自己的。报 data not ready 就先 diagnose_brand / refresh_brand。知识空间不支持 Amazon(要 Amazon 评论用 setup_brand)。采集前用 prepare_space 的 estimatedPoints 给用户报价。",
-          en: "Brand data is per-user isolated. On 'data not ready', diagnose_brand / refresh_brand first. Knowledge spaces don't support Amazon (use setup_brand for Amazon reviews). Quote prepare_space's estimatedPoints before collecting.",
+          zh: "品牌数据按用户隔离,只看得到自己的。报 data not ready 就先 diagnose_brand / refresh_brand。知识空间不支持 Amazon;要 Amazon 评论用 setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts。采集前用 prepare_space 的 estimatedPoints 给用户报价。",
+          en: "Brand data is per-user isolated. On 'data not ready', diagnose_brand / refresh_brand first. Knowledge spaces don't support Amazon; for Amazon reviews use setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts. Quote prepare_space's estimatedPoints before collecting.",
         }),
         t({
           zh: "【复用优先·重要】create_space 只用于「新建」空间并占一个空间名额。建空间前务必先 list_brands 查已有空间——若同一品牌/同一行业已有可复用的空间,应改用 refresh_brand 复用它(必要时合并关键词后重采),**不要为同一目标重复新建第二个**。空间名额有限且重复空间会分散数据。",
           en: "[Reuse first · IMPORTANT] create_space is for NEW spaces only and consumes a space slot. Before creating, ALWAYS list_brands to check existing spaces — if a reusable space for the same brand/industry already exists, use refresh_brand on it instead (merge keywords + re-collect if needed). **Do NOT create a second space for the same target.** Slots are limited and duplicate spaces fragment the data.",
         }),
         t({
-          zh: "支持平台:默认 7 个社媒渠道 tiktok/instagram/youtube/x/facebook/pinterest/trustpilot(prepare_space 预选);可选同价渠道 reddit/threads(同价无附加费,默认不选);amazon_reviews 不属社媒、需 ASIN,知识空间流程不支持(要 Amazon 评论走 setup_brand)。所有社媒渠道同价:每品牌/渠道/关键词/页 12 积分。不支持的平台(如小红书/微博/LinkedIn)要明确告知用户不支持,只在支持列表内给替代。",
-          en: "Supported platforms: default 7 social channels tiktok/instagram/youtube/x/facebook/pinterest/trustpilot (pre-selected in prepare_space); optional same-price channels reddit/threads (no surcharge, off by default); amazon_reviews is not social + needs an ASIN, excluded from the Knowledge Space flow (use setup_brand for Amazon reviews). All social channels use the same price: 12 points per brand/channel/keyword/page. For unsupported platforms (e.g. Xiaohongshu/Weibo/LinkedIn) tell the user they're unsupported and only suggest alternatives from the supported list.",
+          zh: "支持平台:默认 7 个社媒渠道 tiktok/instagram/youtube/x/facebook/pinterest/trustpilot(prepare_space 预选);可选同价渠道 reddit/threads(同价无附加费,默认不选);amazon_reviews 不属社媒、需 ASIN 或 Amazon 商品链接,知识空间流程不支持(要 Amazon 评论走 setup_brand + amazonProducts)。所有社媒渠道同价:每品牌/渠道/关键词/页 12 积分。不支持的平台(如小红书/微博/LinkedIn)要明确告知用户不支持,只在支持列表内给替代。",
+          en: "Supported platforms: default 7 social channels tiktok/instagram/youtube/x/facebook/pinterest/trustpilot (pre-selected in prepare_space); optional same-price channels reddit/threads (no surcharge, off by default); amazon_reviews is not social + needs an ASIN or Amazon product URL, excluded from the Knowledge Space flow (use setup_brand + amazonProducts for Amazon reviews). All social channels use the same price: 12 points per brand/channel/keyword/page. For unsupported platforms (e.g. Xiaohongshu/Weibo/LinkedIn) tell the user they're unsupported and only suggest alternatives from the supported list.",
         }),
         t({
           zh: "【数据就绪门禁】dataReady = 最近一次采集 completed **且** 采到帖子数>0(采到 0 帖仍算 stale、非故障,常见于新建空品牌或关键词在数据源无内容)。读类工具/analyze_brand 前应确保就绪:数据未就绪会报 DATA_NOT_READY、采集在跑会报 REFRESH_IN_PROGRESS —— 这两种都是可等待的,先 get_refresh_progress 等 completed 再读,不要当失败。",
@@ -106,8 +106,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
           en: "[Wording & naming] Always call it a 'Knowledge Space' to users, not 'brand slot'. Prefer the official English brand name when one exists. Knowledge-Space social-discovery keywords must be English (CJK-containing keywords are dropped upstream; translate non-English topics).",
         }),
         t({
-          zh: "【计费细则】建知识空间/建品牌本身只占一个名额、不扣积分;积分只在采集时消耗。采集按 estimatedPoints 预估记账,公式为品牌数×渠道数×关键词数×页数×12。所有计费金额保留 2 位小数。定时/长期监测请走 dashboard 或高级接入,直连 MCP 默认不排期。",
-          en: "[Billing details] Creating a space/brand only takes a slot and costs no points; points are consumed only by collection. Collection is recorded by estimatedPoints: brandCount × channelCount × keywordCount × pages × 12. All billing amounts keep 2 decimals. Scheduled/long-term monitoring goes through the dashboard or advanced onboarding — direct MCP does not schedule by default.",
+          zh: "【计费细则】建知识空间/建品牌本身只占一个名额、不扣积分;积分在采集受理成功后按 estimatedPoints 预估记账,公式为品牌数×渠道数×关键词数×页数×12。所有计费金额保留 2 位小数。定时/长期监测请走 dashboard 或高级接入,直连 MCP 默认不排期。",
+          en: "[Billing details] Creating a space/brand only takes a slot and costs no points; collection is recorded by estimatedPoints after acceptance: brandCount × channelCount × keywordCount × pages × 12. All billing amounts keep 2 decimals. Scheduled/long-term monitoring goes through the dashboard or advanced onboarding — direct MCP does not schedule by default.",
         }),
       ],
     };

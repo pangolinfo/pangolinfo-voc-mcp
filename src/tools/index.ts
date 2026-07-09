@@ -1,7 +1,7 @@
 /**
  * Pangolinfo DataScaler MCP - tool registry (品牌社媒洞察 · v0.3 知识空间版)。
  *
- * 共 24 个 tool = 23 业务工具 + 1 自省(social_capabilities)。
+ * 共 25 个 tool = 24 业务工具 + 1 自省(social_capabilities)。
  * social_capabilities 放第一位 —— AI 首次接入建议先调(或 get_context 拿实时账户数据)。
  *
  * 默认接入走【知识空间】:prepare_space → create_space。setup_brand 是完整品牌(高级)。

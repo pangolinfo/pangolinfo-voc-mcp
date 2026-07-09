@@ -16,8 +16,9 @@ const inputSchema = z.object({
     .number()
     .int()
     .positive()
+    .max(100)
     .optional()
-    .describe(t({ zh: "返回条数上限(可选)。", en: "Max number of brands (optional)." })),
+    .describe(t({ zh: "返回条数上限(可选,最大 100)。", en: "Max number of brands (optional, max 100)." })),
   offset: z
     .number()
     .int()

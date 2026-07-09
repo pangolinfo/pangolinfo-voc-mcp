@@ -25,11 +25,12 @@ const inputSchema = z.object({
     .number()
     .int()
     .positive()
+    .max(365)
     .optional()
     .describe(
       t({
-        zh: "时间窗(天,可选)。例:7、30。不传用后端默认。",
-        en: "Time window in days (optional), e.g. 7, 30. Server default if omitted.",
+        zh: "时间窗(天,可选,最大 365)。例:7、30。不传用后端默认。",
+        en: "Time window in days (optional, max 365), e.g. 7, 30. Server default if omitted.",
       }),
     ),
 });

@@ -3,7 +3,7 @@
  *
  * 调 POST /api/v1/social/brands/{id}/refresh。异步:只返回 jobId 句柄,绝不阻塞 ——
  * 由 agent 用 get_refresh_progress 轮询。采集耗时(90% 在 3h 内)。
- * 扣费按 estimatedPoints 预估记账(响应里 billing.estimatedPoints 是预估)。
+ * 采集受理成功后按 estimatedPoints 预估记账(响应里 billing.estimatedPoints 是预估)。
  * 采集深度用 depth(quick/standard/full=页深)或 maxPages(优先)控制。
  */
 
@@ -39,8 +39,8 @@ const inputSchema = z.object({
     .optional()
     .describe(
       t({
-        zh: "幂等键(可选,建议带)。网络重试时复用同一个值,避免重复发起采集/重复扣费:默认 24 小时内,同一个键命中会直接返回上次结果、不重跑不重扣;但同一个键若换了不同参数会报冲突错(换参数请换新键)。",
-        en: "Idempotency key (optional, recommended). Reuse the same value on retries to avoid a duplicate collection / double-charge: within ~24h a repeat with the same key replays the previous result (no re-run, no re-charge); reusing the same key with DIFFERENT params returns a conflict error (use a new key for new params).",
+        zh: "幂等键(可选,建议带)。网络重试时复用同一个值,降低重复发起采集/重复计费风险;换参数请换新键。",
+        en: "Idempotency key (optional, recommended). Reuse the same value on retries to reduce duplicate-collection / duplicate-charge risk; use a new key when params change.",
       }),
     ),
 });
@@ -52,7 +52,7 @@ export const refreshBrand: Tool<typeof inputSchema> = {
 ⚠️ 异步:本工具只返回作业句柄 jobId,**不会等采集完成**(采集约 90% 在 3 小时内完成)。
 拿到 jobId 后,请用 get_refresh_progress(jobId) 轮询进度,**不要原地干等、不要重复发起**。
 status 变为 completed/partial 后,再调读类工具(get_brand_metrics/search_brand_posts/...)或 analyze_brand,此时数据才是新的。
-扣费:按 estimatedPoints 预估记账(响应里 billing.estimatedPoints 是预估)。
+扣费:采集受理成功后按 estimatedPoints 预估记账(响应里 billing.estimatedPoints 是预估)。
 在途去重:若该品牌已有采集在跑,不会重复发起(也不会重复扣费),而是复用/返回那个在途 jobId —— 直接用 get_refresh_progress 轮询它,等完成再按需重试。
 页数:maxPages(1-10,默认 10)控制本次采集页数并影响费用与耗时;不传则沿用品牌已配置页数。
 提示:若只是"数据可能旧了想定期更新",长期定时监测应走 dashboard / 高级接入,而非反复手动 refresh(每次都扣费)。

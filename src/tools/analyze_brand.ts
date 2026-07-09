@@ -38,17 +38,18 @@ const inputSchema = z.object({
     .number()
     .int()
     .positive()
+    .max(365)
     .optional()
     .describe(
-      t({ zh: "分析的时间窗(天),可选。", en: "Analysis time window in days (optional)." }),
+      t({ zh: "分析的时间窗(天,可选,最大 365)。", en: "Analysis time window in days (optional, max 365)." }),
     ),
   idempotencyKey: z
     .string()
     .optional()
     .describe(
       t({
-        zh: "幂等键(可选,建议带)。网络重试时复用同一个值,避免重复扣费。",
-        en: "Idempotency key (optional, recommended). Reuse the same value on retries to avoid double-charge.",
+        zh: "幂等键(可选,建议带)。网络重试时复用同一个值,降低重复分析/重复计费风险。",
+        en: "Idempotency key (optional, recommended). Reuse the same value on retries to reduce duplicate-analysis / duplicate-charge risk.",
       }),
     ),
 });

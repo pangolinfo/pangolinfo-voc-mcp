@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import type { Tool } from "./_types.js";
 import { buildQuery } from "./_query.js";
+import { fullBrandPlatformSchema } from "./_schemas.js";
 import { t } from "../i18n.js";
 
 const inputSchema = z.object({
@@ -22,12 +23,15 @@ const inputSchema = z.object({
       }),
     ),
   platform: z
-    .string()
+    .preprocess(
+      (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+      fullBrandPlatformSchema.optional(),
+    )
     .optional()
     .describe(
       t({
-        zh: "平台过滤(可选)。例:'youtube'、'tiktok'、'instagram'。",
-        en: "Platform filter (optional), e.g. 'youtube', 'tiktok', 'instagram'.",
+        zh: "平台过滤(可选)。支持 tiktok/instagram/youtube/x/facebook/pinterest/trustpilot/reddit/threads/amazon_reviews。",
+        en: "Platform filter (optional). Supports tiktok/instagram/youtube/x/facebook/pinterest/trustpilot/reddit/threads/amazon_reviews.",
       }),
     ),
   sentiment: z
@@ -52,8 +56,9 @@ const inputSchema = z.object({
     .number()
     .int()
     .positive()
+    .max(100)
     .optional()
-    .describe(t({ zh: "返回条数上限(可选)。", en: "Max number of posts (optional)." })),
+    .describe(t({ zh: "返回条数上限(可选,最大 100)。", en: "Max number of posts (optional, max 100)." })),
 });
 
 export const searchBrandPosts: Tool<typeof inputSchema> = {

@@ -26,12 +26,13 @@ const inputSchema = z.object({
   timeoutSeconds: z
     .number()
     .int()
-    .positive()
+    .min(3)
+    .max(20)
     .optional()
     .describe(
       t({
-        zh: "最长等待秒数(可选,默认由后端定)。超时即返回当前进度,不会无限等。",
-        en: "Max wait seconds (optional, backend default). Returns current progress on timeout — never waits forever.",
+        zh: "最长等待秒数(可选,3-20 秒,默认由后端定)。超时即返回当前进度,不会无限等。",
+        en: "Max wait seconds (optional, 3-20s, backend default). Returns current progress on timeout — never waits forever.",
       }),
     ),
 });

@@ -8,6 +8,7 @@
 import { z } from "zod";
 
 import type { Tool } from "./_types.js";
+import { englishKeywordSchema, fullBrandPlatformSchema } from "./_schemas.js";
 import { t } from "../i18n.js";
 
 // ⚠️ 字段名必须与 DataScaler Partner API 的 PATCH /brands/{id} 一致 ——
@@ -25,21 +26,23 @@ const inputSchema = z.object({
       }),
     ),
   brandKeywords: z
-    .array(z.string())
+    .array(englishKeywordSchema("brandKeywords"))
+    .max(30)
     .optional()
     .describe(
       t({
-        zh: "品牌关键词列表(可选,直接命中品牌本身的词,如 'Ugreen'、'Ugreen charger')。传则整体替换。传空数组 [] 会清空;想保持不变就别传。**用英文**(含中日韩字符的词会被上游丢弃)。",
-        en: "Brand keywords (optional; terms that hit the brand itself, e.g. 'Ugreen', 'Ugreen charger'). Replaces the whole list if provided. [] clears it; omit to keep unchanged. **Use English** (CJK-containing keywords are dropped upstream).",
+        zh: "品牌英文关键词列表(可选,最多 30 个,如 'Ugreen'、'Ugreen charger')。传则整体替换。传空数组 [] 会清空;想保持不变就别传。含中日韩字符会被拒绝。",
+        en: "Brand English keywords (optional, max 30; terms that hit the brand itself, e.g. 'Ugreen', 'Ugreen charger'). Replaces the whole list if provided. [] clears it; omit to keep unchanged. CJK keywords are rejected.",
       }),
     ),
   categoryKeywords: z
-    .array(z.string())
+    .array(englishKeywordSchema("categoryKeywords"))
+    .max(30)
     .optional()
     .describe(
       t({
-        zh: "品类关键词列表(可选,品类通用词,如 'power bank'、'usb c hub')。传则整体替换。传空数组 [] 会清空;想保持不变就别传。**用英文**。",
-        en: "Category keywords (optional; generic category terms, e.g. 'power bank', 'usb c hub'). Replaces the whole list if provided. [] clears it; omit to keep unchanged. **Use English**.",
+        zh: "品类英文关键词列表(可选,最多 30 个,如 'power bank'、'usb c hub')。传则整体替换。传空数组 [] 会清空;想保持不变就别传。",
+        en: "Category English keywords (optional, max 30; generic category terms, e.g. 'power bank', 'usb c hub'). Replaces the whole list if provided. [] clears it; omit to keep unchanged.",
       }),
     ),
   competitors: z
@@ -53,12 +56,13 @@ const inputSchema = z.object({
       }),
     ),
   platforms: z
-    .array(z.string())
+    .array(fullBrandPlatformSchema)
+    .max(10)
     .optional()
     .describe(
       t({
-        zh: "监测平台列表(可选,如 ['x','tiktok','youtube','trustpilot'])。传则整体替换。传空数组 [] 会清空;想保持不变就别传。",
-        en: "Monitor platforms (optional, e.g. ['x','tiktok','youtube','trustpilot']). Replaces the whole list if provided. [] clears it; omit to keep unchanged.",
+        zh: "监测平台列表(可选,如 ['x','tiktok','youtube','trustpilot'])。支持社媒平台及 amazon_reviews。传则整体替换。传空数组 [] 会清空;想保持不变就别传。",
+        en: "Monitor platforms (optional, e.g. ['x','tiktok','youtube','trustpilot']). Supports social platforms plus amazon_reviews. Replaces the whole list if provided. [] clears it; omit to keep unchanged.",
       }),
     ),
   brandName: z

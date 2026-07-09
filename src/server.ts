@@ -15,7 +15,7 @@
  *      never share auth state.
  *
  * In both modes, tool registration is identical — `buildServer(ctx)`
- * wires the same Server with the same 16 social-insight tools and the same error
+ * wires the same Server with the same social-insight tools and the same error
  * envelope semantics.
  */
 
@@ -76,13 +76,13 @@ const SERVER_INSTRUCTIONS = t({
    a) prepare_space(query) 出计划(行业候选+建议关键词+渠道+页数档位及每档 estimatedPoints),不扣费;
    b) 把行业候选和预计积分(estimatedPoints)给用户看,让用户确认【行业(必选)+渠道+页数】;
    c) create_space(name, industries, platforms, maxPages) 建空间并首采(扣费,返回 spaceId + 采集 jobId)。
-3. 只有用户明确要长期精细监测(竞品对比/官网/定时刷新/Amazon 评论)才用 setup_brand(完整品牌)。
+3. 只有用户明确要长期精细监测(竞品对比/官网/定时刷新/Amazon 评论)才用 setup_brand(完整品牌)。Amazon 评论必须同时提供 amazonProducts[{asin 或 url}]。
 
 异步与轮询:采集是异步的。create_space/refresh_brand/setup_brand 立即返回 jobId,**绝不要阻塞干等**;用 get_refresh_progress(jobId) 轮询到 status=completed/partial,或 wait_for_refresh 短等。完成后才有数据可读/可分析。analyze_brand 是同步的(直接返回报告,可能耗时,耐心等)。
 
 计费:只读全免费。采集按 品牌数×渠道数×关键词数×页数×12 积分 计(受理成功后按预估记账);analyze_brand 每次 600 积分(成功才扣)。采集前务必用 prepare_space 的 estimatedPoints 给用户报价确认。
 
-报错处理:data not ready → 先 diagnose_brand / refresh_brand;额度不足 → 引导用户充值(错误里有 links);不懂的错误码 → explain_error。知识空间不支持 Amazon(报 400 时改用 setup_brand)。品牌数据按用户隔离,只看得到自己的。`,
+报错处理:data not ready → 先 diagnose_brand / refresh_brand;额度不足 → 引导用户充值(错误里有 links);不懂的错误码 → explain_error。知识空间不支持 Amazon;如需 Amazon 评论,改用 setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts。品牌数据按用户隔离,只看得到自己的。`,
   en: `Pangolin brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across social platforms (TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot), plus AI deep analysis.
 
 Onboarding strategy (important):
@@ -91,13 +91,13 @@ Onboarding strategy (important):
    a) prepare_space(query) → plan (industry candidates + suggested keywords + platforms + page tiers each with estimatedPoints), no charge;
    b) show the industry candidates and estimated points (estimatedPoints) to the user and confirm [industry (required) + platforms + pages];
    c) create_space(name, industries, platforms, maxPages) → creates the space + first collection (charged; returns spaceId + collection jobId).
-3. Use setup_brand (full brand) only when the user explicitly wants long-term fine-grained monitoring (competitor comparison / official site / scheduled refresh / Amazon reviews).
+3. Use setup_brand (full brand) only when the user explicitly wants long-term fine-grained monitoring (competitor comparison / official site / scheduled refresh / Amazon reviews). Amazon reviews require amazonProducts[{asin or url}].
 
 Async & polling: collection is async. create_space/refresh_brand/setup_brand return a jobId immediately — NEVER busy-wait; poll get_refresh_progress(jobId) until status=completed/partial, or wait_for_refresh briefly. Data is readable/analyzable only after completion. analyze_brand is synchronous (returns the report directly; may take a while).
 
 Billing: all reads free. Collection costs brandCount × channelCount × keywordCount × pages × 12 points (estimated at acceptance); analyze_brand costs 600 points on success. Always quote prepare_space's estimatedPoints before collecting.
 
-Errors: data not ready → diagnose_brand / refresh_brand first; out of quota → guide the user to top up (error carries links); unknown code → explain_error. Knowledge spaces don't support Amazon (on 400, use setup_brand). Brand data is per-user isolated.`,
+Errors: data not ready → diagnose_brand / refresh_brand first; out of quota → guide the user to top up (error carries links); unknown code → explain_error. Knowledge spaces don't support Amazon; for Amazon reviews use setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts. Brand data is per-user isolated.`,
 });
 
 function buildServer(ctx: ToolContext): Server {

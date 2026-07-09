@@ -9,6 +9,7 @@
 import { z } from "zod";
 
 import type { Tool } from "./_types.js";
+import { englishKeywordSchema, socialPlatformSchema } from "./_schemas.js";
 import { t } from "../i18n.js";
 
 const inputSchema = z.object({
@@ -22,21 +23,23 @@ const inputSchema = z.object({
       }),
     ),
   extraKeywords: z
-    .array(z.string())
+    .array(englishKeywordSchema("extraKeywords"))
+    .max(50)
     .optional()
     .describe(
       t({
-        zh: "追加关键词(可选,≤50)。传空数组 [] 无意义,省略即可。",
-        en: "Extra keywords (optional, ≤50). Omit if none.",
+        zh: "追加英文关键词(可选,≤50)。含中日韩字符会被拒绝;中文话题请先翻译成英文。传空数组 [] 无意义,省略即可。",
+        en: "Extra English keywords (optional, ≤50). CJK keywords are rejected; translate non-English topics first. Omit if none.",
       }),
     ),
   platforms: z
-    .array(z.string())
+    .array(socialPlatformSchema)
+    .max(9)
     .optional()
     .describe(
       t({
-        zh: "预选渠道覆盖(可选)。不传则默认给 7 个社媒。",
-        en: "Preselected platforms (optional). Defaults to 7 social platforms if omitted.",
+        zh: "预选社媒渠道覆盖(可选)。不传则默认给 7 个社媒。仅支持 tiktok/instagram/youtube/x/facebook/pinterest/trustpilot/reddit/threads;知识空间不支持 amazon_reviews。",
+        en: "Preselected social platforms (optional). Defaults to 7 social platforms if omitted. Only tiktok/instagram/youtube/x/facebook/pinterest/trustpilot/reddit/threads; Knowledge Spaces do not support amazon_reviews.",
       }),
     ),
 });

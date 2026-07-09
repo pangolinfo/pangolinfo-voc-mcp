@@ -1,10 +1,10 @@
 # DataScaler VOC MCP Server - HTTP mode Docker image
 #
-# Build:   docker build -t datascaler-voc:0.2.0 .
+# Build:   docker build -t datascaler-voc:0.2.4 .
 # Run:     docker run --rm -p 3000:3000 \
 #            -e PANGOLINFO_TRANSPORT=http \
 #            -e PANGOLINFO_API_KEY=pgl_xxx \
-#            datascaler-voc:0.2.0
+#            datascaler-voc:0.2.4
 # Verify:  curl http://localhost:3000/health
 #
 # Two-stage build keeps the runtime image lean (~150 MB on node:20-alpine).
