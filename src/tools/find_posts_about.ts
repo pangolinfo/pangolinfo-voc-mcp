@@ -45,12 +45,12 @@ export const findPostsAbout: Tool<typeof inputSchema> = {
   description: t({
     zh: `[语义检索 · 免费] 按"意思"找帖(向量召回),而非关键词精确匹配。
 依赖品牌已有数据 —— 若报 data not ready,先 refresh_brand 采集。
-Returns: data.posts[{ id, platform, content, sentiment, score(相关度), url }], count。
+Returns: data.items[{ type, id, postId, platform, content, authorNickname, url, similarity(相关度), publishedAt }], count。兼容返回 posts[]=items[] alias,方便按帖子列表读取。
 Use when: 用户用自然语言描述想找的帖子主题(如"提到送礼场景的""吐槽客服的")。
 Don't use: 要按平台/情感等结构化条件过滤(用 search_brand_posts);要汇总指标(用 get_brand_metrics)。`,
     en: `[Semantic search · FREE] Find posts by meaning (vector recall), not exact keyword match.
 Requires existing data — if 'data not ready', run refresh_brand first.
-Returns: data.posts[{ id, platform, content, sentiment, score(relevance), url }], count.
+Returns: data.items[{ type, id, postId, platform, content, authorNickname, url, similarity(relevance), publishedAt }], count. Also returns posts[]=items[] as a compatibility alias.
 Use when: user describes the topic in natural language (e.g. 'posts mentioning gifting', 'complaints about support').
 Don't use: for structured filters like platform/sentiment (use search_brand_posts); for aggregate metrics (use get_brand_metrics).`,
   }),
@@ -58,8 +58,37 @@ Don't use: for structured filters like platform/sentiment (use search_brand_post
   async execute(input, ctx) {
     ctx.logger.info(`find_posts_about: brandId=${input.brandId} query=${input.query}`);
     const qs = buildQuery({ query: input.query, limit: input.limit });
-    return ctx.client.get(
+    const resp = await ctx.client.get(
       `/api/v1/social/brands/${encodeURIComponent(input.brandId)}/posts/semantic${qs}`,
     );
+    return addPostsAlias(resp);
   },
 };
+
+type RecordLike = Record<string, unknown>;
+
+function isRecord(value: unknown): value is RecordLike {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * DataScaler semantic search returns `items[]`; our earlier MCP text said
+ * `posts[]`. Keep the upstream field and add a compatibility alias so agents
+ * following either shape can read the result.
+ */
+function addPostsAlias(resp: unknown): unknown {
+  if (!isRecord(resp)) return resp;
+
+  const scopes: RecordLike[] = [resp];
+  if (isRecord(resp.data)) {
+    scopes.push(resp.data);
+    if (isRecord(resp.data.data)) scopes.push(resp.data.data);
+  }
+
+  for (const scope of scopes) {
+    if (Array.isArray(scope.items) && !Array.isArray(scope.posts)) {
+      scope.posts = scope.items;
+    }
+  }
+  return resp;
+}

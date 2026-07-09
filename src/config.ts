@@ -2,7 +2,7 @@
  * Pangolinfo DataScaler MCP - shared configuration constants.
  *
  * 这是白标"品牌社媒洞察"MCP。它本身不持 DataScaler 凭证、不做扣费 ——
- * 所有调用都打到 Pangolin 自己的后端 `/api/v1/social/*`(部署在 scrapeapi 上),
+ * 所有调用都打到 Pangolinfo 自己的后端 `/api/v1/social/*`(部署在 scrapeapi 上),
  * 由后端注入 DataScaler 凭证 + externalUserId + 扣费,再转发给 DataScaler。
  *
  * 鉴权复用 pangolinfo 同一套 API Key(env PANGOLINFO_API_KEY / --api-key / config),

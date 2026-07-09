@@ -39,7 +39,7 @@ export class PangolinfoError extends Error {
 
 /**
  * HTTP 状态码 → 错误类。用于网络代理/网关返回的真正非 2xx。
- * Pangolin 后端自身的业务错误是 HTTP 200 + 非零 code,走 codeFromBizCode。
+ * Pangolinfo 后端自身的业务错误是 HTTP 200 + 非零 code,走 codeFromBizCode。
  */
 export function codeFromHttpStatus(status: number): PangolinfoErrorCode {
   if (status === 401 || status === 403) return "AUTH";
@@ -51,7 +51,7 @@ export function codeFromHttpStatus(status: number): PangolinfoErrorCode {
 }
 
 /**
- * Pangolin 后端业务错误码 → 6 类。
+ * Pangolinfo 后端业务错误码 → 6 类。
  *
  * SOURCE OF TRUTH — 转录自
  *   crawler-ext-service/ext-scrapeapi/.../exception/ErrorCode.java

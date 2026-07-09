@@ -81,7 +81,7 @@ async function callTool(name, args) {
 
 (async () => {
   console.log("════════════════════════════════════════════════════════");
-  console.log(" Pangolin DataScaler MCP — 完整使用流程演示");
+  console.log(" Pangolinfo DataScaler MCP — 完整使用流程演示");
   console.log("════════════════════════════════════════════════════════");
 
   const init = await rpc("initialize", {

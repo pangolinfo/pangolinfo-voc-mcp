@@ -6,7 +6,7 @@
  *
  * 计费公式(与 DataScaler 后端一致):
  *   credits = 品牌数 × 渠道数 × 关键词数 × 页数 × 0.02
- *   Pangolin 积分 = credits × 600 = 品牌数 × 渠道数 × 关键词数 × 页数 × 12
+ *   Pangolinfo 积分 = credits × 600 = 品牌数 × 渠道数 × 关键词数 × 页数 × 12
  */
 
 import { z } from "zod";
@@ -71,12 +71,12 @@ Returns: { formula, unitPrice, factors, examples, analyzeBrand, free }.`,
         }),
       ],
       analyzeBrand: t({
-        zh: "analyze_brand(AI 深度分析):600 积分/次,成功才扣(命中套餐 AI 额度则 0)",
-        en: "analyze_brand (AI deep analysis): 600 points/call, charged only on success (0 if within plan AI quota)",
+        zh: "analyze_brand(AI 深度分析):600 积分/次,成功才扣",
+        en: "analyze_brand (AI deep analysis): 600 points/call, charged only on success",
       }),
       billingMode: t({
-        zh: "两种计费模式并存,当前用户是哪种见 get_context.billingMode。预付费:扣 Pangolin 积点(充值积点即用,余额不足报额度不足);后付费:不扣积点,按账期用量月底结算(有账期用量上限,超上限报额度不足)。两种模式的采集/分析单价相同(本工具公式),仅结算方式不同。",
-        en: "Two billing modes coexist; which one applies to the current user — see get_context.billingMode. Prepaid: deducts Pangolin points (top up points to use; insufficient balance → quota error). Postpaid: no points deducted, settled monthly by billing-period usage (with a period usage cap; over cap → quota error). Per-call unit prices are identical for both (see this tool's formula); only the settlement method differs.",
+        zh: "两种计费模式并存,当前用户是哪种见 get_context.billingMode。预付费:扣 Pangolinfo 积点(充值积点即用,余额不足报额度不足);后付费:不扣积点,按账期用量月底结算(有账期用量上限,超上限报额度不足)。两种模式的采集/分析单价相同(本工具公式),仅结算方式不同。",
+        en: "Two billing modes coexist; which one applies to the current user — see get_context.billingMode. Prepaid: deducts Pangolinfo points (top up points to use; insufficient balance → quota error). Postpaid: no points deducted, settled monthly by billing-period usage (with a period usage cap; over cap → quota error). Per-call unit prices are identical for both (see this tool's formula); only the settlement method differs.",
       }),
       free: t({
         zh: "所有只读工具(metrics/posts/sentiment/voice-share/risk-alerts/...)、prepare_space、diagnose_brand、get_refresh_progress、wait_for_refresh、get_brand_summary、get_context、explain_error、get_billing_rules 全免费。",

@@ -2,7 +2,7 @@
 
 日期: 2026-07-08  
 环境: DataScaler production `https://app.datascaler.ai/partner/v1`  
-验证方式: 使用 Pangolin 生产 Partner 凭证通过 `client_credentials` 换取 access token, 直连 DataScaler Partner API。未在文档中记录 token / secret。
+验证方式: 使用 Pangolinfo 生产 Partner 凭证通过 `client_credentials` 换取 access token, 直连 DataScaler Partner API。未在文档中记录 token / secret。
 
 ## v1.1 期望口径
 
@@ -10,7 +10,7 @@
 
 ```text
 credits = brandCount * channelCount * keywordCount * pages * 0.02
-Pangolin points = credits * 600
+Pangolinfo points = credits * 600
 ```
 
 默认知识空间:
@@ -40,7 +40,7 @@ expected points = 10080
 
 ```http
 POST https://app.datascaler.ai/partner/v1/spaces/prepare
-X-DataScaler-External-User-Id: <pangolin-test-user-id>
+X-DataScaler-External-User-Id: <pangolinfo-test-user-id>
 Content-Type: application/json
 
 {"query":"Anker"}
@@ -220,8 +220,8 @@ billingIntent: status.billingIntent ?? null
 
 说明:
 
-- `GET /context`, `GET /account`, `GET /actions` 是 DataScaler 原始账户接口, 仍会返回 DataScaler 侧 `plan`, `quota`, `credits.remaining`。这是白标净化问题, Pangolin scrapeapi 会剥离, 不属于 v1.1 采集公式问题。
-- `analyze_brand` 仍是 1 credit/次, v1.1 通知明确该项不变。Pangolin 侧换算为 600 points/次。
+- `GET /context`, `GET /account`, `GET /actions` 是 DataScaler 原始账户接口, 仍会返回 DataScaler 侧 `plan`, `quota`, `credits.remaining`。这是白标净化问题, Pangolinfo scrapeapi 会剥离, 不属于 v1.1 采集公式问题。
+- `analyze_brand` 仍是 1 credit/次, v1.1 通知明确该项不变。Pangolinfo 侧换算为 600 points/次。
 
 ## DataScaler 原版源码中的旧公式根因
 

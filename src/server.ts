@@ -68,7 +68,7 @@ const logger: ToolLogger = {
  * 默认怎么接入、扣费/异步语义、别踩的坑。工具各自的 description 是细节,这里是全局策略。
  */
 const SERVER_INSTRUCTIONS = t({
-  zh: `Pangolin 品牌社媒洞察(白标)。监测品牌/话题在社媒(TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot)的声量、情感、竞品、风险,并做 AI 深度分析。
+  zh: `Pangolinfo 品牌社媒洞察(白标)。监测品牌/话题在社媒(TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot)的声量、情感、竞品、风险,并做 AI 深度分析。
 
 接入策略(重要):
 1. 首次接入先调 social_capabilities(自省) 或 get_context(实时账户/品牌/额度)。
@@ -83,7 +83,7 @@ const SERVER_INSTRUCTIONS = t({
 计费:只读全免费。采集按 品牌数×渠道数×关键词数×页数×12 积分 计(受理成功后按预估记账);analyze_brand 每次 600 积分(成功才扣)。采集前务必用 prepare_space 的 estimatedPoints 给用户报价确认。
 
 报错处理:data not ready → 先 diagnose_brand / refresh_brand;额度不足 → 引导用户充值(错误里有 links);不懂的错误码 → explain_error。知识空间不支持 Amazon;如需 Amazon 评论,改用 setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts。品牌数据按用户隔离,只看得到自己的。`,
-  en: `Pangolin brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across social platforms (TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot), plus AI deep analysis.
+  en: `Pangolinfo brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across social platforms (TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot), plus AI deep analysis.
 
 Onboarding strategy (important):
 1. On first use call social_capabilities (introspection) or get_context (live account/brands/quota).

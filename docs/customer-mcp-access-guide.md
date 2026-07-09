@@ -1,26 +1,26 @@
-# Pangolin 品牌社媒洞察 MCP 客户接入指南
+# Pangolinfo 品牌社媒洞察 MCP 客户接入指南
 
-本文面向接入 Pangolin 品牌社媒洞察(VOC) MCP 的客户和 AI Agent 开发者。客户只需要使用 Pangolin 提供的 MCP 地址和 API Key,不需要也不应该接触任何上游供应商账号或凭证。
+本文面向接入 Pangolinfo 品牌社媒洞察(VOC) MCP 的客户和 AI Agent 开发者。客户只需要使用 Pangolinfo 提供的 MCP 地址和 API Key,不需要也不应该接触任何上游供应商账号或凭证。
 
 ## 1. 接入地址
 
 生产 MCP 地址:
 
 ```text
-https://datascaler-voc.pangolinfo.com/mcp?api_key=<YOUR_PANGOLIN_API_KEY>
+https://voc.pangolinfo.com/mcp?api_key=<YOUR_PANGOLINFO_API_KEY>
 ```
 
 如果你的 MCP 客户端支持 HTTP Header,也可以使用:
 
 ```text
-URL: https://datascaler-voc.pangolinfo.com/mcp
-Header: Authorization: Bearer <YOUR_PANGOLIN_API_KEY>
+URL: https://voc.pangolinfo.com/mcp
+Header: Authorization: Bearer <YOUR_PANGOLINFO_API_KEY>
 ```
 
 健康检查地址:
 
 ```text
-https://datascaler-voc.pangolinfo.com/health
+https://voc.pangolinfo.com/health
 ```
 
 注意:
@@ -30,7 +30,7 @@ https://datascaler-voc.pangolinfo.com/health
 
 ## 2. MCP 能做什么
 
-Pangolin 品牌社媒洞察 MCP 用于监测品牌或话题在主流社媒平台上的讨论,包括:
+Pangolinfo 品牌社媒洞察 MCP 用于监测品牌或话题在主流社媒平台上的讨论,包括:
 
 - 声量、互动、触达、平台分布
 - 情感分布和正负面驱动因素
@@ -149,7 +149,7 @@ diagnose_brand
 
 ## 6. 计费规则
 
-只读工具免费。采集类工具按 Pangolin 积分计费:
+只读工具免费。采集类工具按 Pangolinfo 积分计费:
 
 ```text
 积分 = 品牌数 * 渠道数 * 关键词数 * 页数 * 12
@@ -165,7 +165,7 @@ analyze_brand = 600 积分/次
 - `prepare_space` 会返回 `estimatedPoints`,采集前应把这个数给用户确认。
 - 采集类工具在采集受理成功后按预估记账。
 - `get_context` 会返回当前用户的 `billingMode`:
-  - `prepaid`:预付费,从 Pangolin 积分余额扣。
+  - `prepaid`:预付费,从 Pangolinfo 积分余额扣。
   - `postpaid`:后付费,按账期用量记账。
 - 两种模式单价相同,只是结算方式不同。
 
@@ -270,9 +270,9 @@ totalPosts > 0
 | `DATA_NOT_READY` | 先 `diagnose_brand`;需要新数据时确认费用后 `refresh_brand` |
 | `REFRESH_IN_PROGRESS` | 用 `get_refresh_progress` 等待,不要重复发起 |
 | `BRAND_NOT_FOUND` / 404 | brandId 不存在或不属于当前用户;用 `list_brands` 获取自己的 brandId |
-| 额度不足 | 引导用户在 Pangolin 充值或联系账户管理员 |
+| 额度不足 | 引导用户在 Pangolinfo 充值或联系账户管理员 |
 
-如果需要 Pangolin 支持排查,请提供:
+如果需要 Pangolinfo 支持排查,请提供:
 
 - 工具名
 - MCP 返回的错误内容
@@ -285,14 +285,14 @@ totalPosts > 0
 
 ```text
 Transport: Streamable HTTP / HTTP MCP
-URL: https://datascaler-voc.pangolinfo.com/mcp?api_key=<YOUR_PANGOLIN_API_KEY>
+URL: https://voc.pangolinfo.com/mcp?api_key=<YOUR_PANGOLINFO_API_KEY>
 ```
 
 如果客户端支持 Header:
 
 ```text
-URL: https://datascaler-voc.pangolinfo.com/mcp
-Authorization: Bearer <YOUR_PANGOLIN_API_KEY>
+URL: https://voc.pangolinfo.com/mcp
+Authorization: Bearer <YOUR_PANGOLINFO_API_KEY>
 ```
 
 接入后,让 Agent 先调用:

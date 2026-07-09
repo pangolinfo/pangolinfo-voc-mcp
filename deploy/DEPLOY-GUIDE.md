@@ -1,6 +1,6 @@
-# DataScaler VOC MCP v0.2.4 — 阿里云 ACK 部署手册
+# DataScaler VOC MCP v0.2.5 — 阿里云 ACK 部署手册
 
-> 部署目标: 让 MCP 客户端通过 `https://datascaler-voc.pangolinfo.com/mcp?api_key=pgl_xxx` 直接连云端 MCP server,无需安装任何东西。
+> 部署目标: 让 MCP 客户端通过 `https://voc.pangolinfo.com/mcp?api_key=pgl_xxx` 直接连云端 MCP server,无需安装任何东西。
 > 架构: AI 客户端 → 本 MCP(纯转发)→ Java scrapeapi(crawler-ext-service, 扣费在此)→ DataScaler Partner API。
 
 ---
@@ -11,12 +11,12 @@
 |---|---|
 | ACK 集群 | `crawler` @ ap-southeast-1 (新加坡), default namespace |
 | 镜像仓库 | `registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/datascaler-voc` |
-| 镜像 tag | `0.2.4`,`latest` |
+| 镜像 tag | `0.2.5`,`latest` |
 | 容器端口 | 3000 (HTTP) |
 | 探针路径 | `GET /health` |
 | MCP 协议端点 | `POST /mcp` |
 | 对外方式 | `type: LoadBalancer` Service → ACK 自动建**独立 SLB**(不与 pangolinfo-mcp 共用) |
-| 对外域名 | `datascaler-voc.pangolinfo.com` |
+| 对外域名 | `voc.pangolinfo.com` |
 | 证书 | 复用 `*.pangolinfo.com` 自签证书 cert-id(SAN 已含,见 memory / `D:/larkDownload/mcp-cert`) |
 | 转发后端 | `PANGOLINFO_SCRAPE_BASE=https://scrapeapi.pangolinfo.com` |
 
@@ -39,10 +39,10 @@ cp scripts/window/docker-mcp.sh.example scripts/window/docker-mcp.sh
 
 ```cmd
 cd D:\newCode\pangolinfo-datascaler-mcp
-scripts\window\deploy-mcp.cmd 0.2.4
+scripts\window\deploy-mcp.cmd 0.2.5
 ```
 
-脚本会:切到根目录 → 通过 WSL 调 `docker-mcp.sh` → 在 WSL 内 `docker build`(Dockerfile 多阶段自己跑 npm ci + npm run build)→ `docker login` ACR → `docker push :0.2.4` 和 `:latest`。
+脚本会:切到根目录 → 通过 WSL 调 `docker-mcp.sh` → 在 WSL 内 `docker build`(Dockerfile 多阶段自己跑 npm ci + npm run build)→ `docker login` ACR → `docker push :0.2.5` 和 `:latest`。
 
 > ⚠️ 不要用 Git Bash 直接 `docker push` —— 国内→新加坡 ACR 国际版只通过 WSL2 网络栈才连得上,`.cmd` 已包这层。
 
@@ -56,7 +56,7 @@ scripts\window\deploy-mcp.cmd 0.2.4
 
 **验证 Pod 日志**(工作负载 → 无状态 → datascaler-voc → 任一 Pod → 日志)应看到:
 ```
-[pangolinfo-datascaler-mcp] locale=en version=0.2.4
+[pangolinfo-datascaler-mcp] locale=en version=0.2.5
 [pangolinfo-datascaler-mcp] transport=http
 [pangolinfo-datascaler-mcp] http server listening on :3000; endpoint=/mcp health=/health; 25 tool(s) registered
 ```
@@ -71,7 +71,7 @@ scripts\window\deploy-mcp.cmd 0.2.4
 
 | 类型 | 主机 | 记录值 | 代理 |
 |---|---|---|---|
-| `A` | `datascaler-voc` | Step 2 拿到的新 SLB External IP | Proxied(橙云,跟 mcp / scrapeapi 同款) |
+| `A` | `voc` | Step 2 拿到的新 SLB External IP | Proxied(橙云,跟 mcp / scrapeapi 同款) |
 
 > Cloudflare SSL/TLS 模式当前是 **Full**(不校验后端证书 CN),自签证书够用。**绝对不要改 Flexible**(会影响 scrapeapi)。
 
@@ -83,18 +83,18 @@ DNS 生效后(Cloudflare 通常几分钟):
 
 ```bash
 # 1. health 检查 (无需 API key)
-curl https://datascaler-voc.pangolinfo.com/health
-# 期望: {"status":"ok","version":"0.2.4","toolCount":25}
+curl https://voc.pangolinfo.com/health
+# 期望: {"status":"ok","version":"0.2.5","toolCount":25}
 
 # 2. 列工具 (25 个)
-curl -X POST "https://datascaler-voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
+curl -X POST "https://voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
 # 期望: 25 个 tool
 
 # 3. 真调一次免费工具
-curl -X POST "https://datascaler-voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
+curl -X POST "https://voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"social_capabilities","arguments":{}}}'
@@ -102,7 +102,7 @@ curl -X POST "https://datascaler-voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
 
 客户端配置:
 ```
-MCP server URL: https://datascaler-voc.pangolinfo.com/mcp?api_key=pgl_xxx
+MCP server URL: https://voc.pangolinfo.com/mcp?api_key=pgl_xxx
 ```
 
 ---

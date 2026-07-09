@@ -3,10 +3,10 @@
  *
  * ALL outbound HTTP goes through this class. Tools call
  * `ctx.client.post(path, body)` / `ctx.client.get(path)` and never touch
- * fetch directly. Auth header (Pangolin API Key) is injected here.
+ * fetch directly. Auth header (Pangolinfo API Key) is injected here.
  *
- * 注意:本 client 调的是 Pangolin 自己的后端 /api/v1/social/*(scrapeBase),
- * 不是 DataScaler。DataScaler 凭证由后端持有,这里只带 Pangolin 用户的 key。
+ * 注意:本 client 调的是 Pangolinfo 自己的后端 /api/v1/social/*(scrapeBase),
+ * 不是 DataScaler。DataScaler 凭证由后端持有,这里只带 Pangolinfo 用户的 key。
  *
  * Uses Node 18+ built-in global `fetch`.
  */
@@ -125,7 +125,7 @@ export class DataScalerClient {
       return text;
     }
 
-    // Pangolin 后端业务错误以 HTTP 200 + 非零 `code` 返回(ApiResponse 封装)。
+    // Pangolinfo 后端业务错误以 HTTP 200 + 非零 `code` 返回(ApiResponse 封装)。
     // social 错误码在 93xx 段(见 errors.ts codeFromBizCode)。
     if (isErrorEnvelope(parsed)) {
       const env = parsed as BackendEnvelope;

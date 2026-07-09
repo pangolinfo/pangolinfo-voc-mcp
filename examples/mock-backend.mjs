@@ -5,9 +5,9 @@
  * `/api/v1/social/*` 那一跳,仅用于本地把 MCP 跑通看数据流。
  *
  * ⚠️ 这不是生产代码。真实 Java 那一跳还会做:
- *   - 校验 Pangolin API Key、从已认证会话取 userId(注入为 externalUserId)
+ *   - 校验 Pangolinfo API Key、从已认证会话取 userId(注入为 externalUserId)
  *   - 扣费(deductBalance,受理即扣)、按操作差异化定价
- *   - DataScaler 错误码 → Pangolin 6 类错误模型映射
+ *   - DataScaler 错误码 → Pangolinfo 6 类错误模型映射
  * 这里只做最小转发:注入 DataScaler token + 一个演示用 externalUserId → 透传 staging。
  *
  * 凭证从环境变量读,绝不硬编码(本仓是 public)。运行前先 export:

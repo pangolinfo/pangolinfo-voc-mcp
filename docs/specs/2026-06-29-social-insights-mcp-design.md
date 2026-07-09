@@ -1,15 +1,15 @@
 # Social-Insights MCP 设计 spec
 
 > 状态：设计已定稿（2026-06-29），等 DataScaler staging 凭证联调
-> 上游契约：DataScaler Partner API v0.1（`pangolin-partner-api-接入指南.md`）
+> 上游契约：DataScaler Partner API v0.1（`pangolinfo-partner-api-接入指南.md`）
 > 仓库：`pangolinfo-datascaler-mcp`（本仓，纯转发层）+ `crawler-ext-service`（Java，新增 social 模块，扣费在此）
 
 ---
 
 ## 0. 一句话
 
-在 DataScaler Partner API（品牌社媒洞察）上自建白标 MCP。终端 AI 用户只看到 Pangolin。
-**MCP 纯转发，扣费与 DataScaler 凭证全部留在 Pangolin 的 Java 后端。**
+在 DataScaler Partner API（品牌社媒洞察）上自建白标 MCP。终端 AI 用户只看到 Pangolinfo。
+**MCP 纯转发，扣费与 DataScaler 凭证全部留在 Pangolinfo 的 Java 后端。**
 
 ---
 
@@ -17,17 +17,17 @@
 
 ```
 ┌─ AI 客户端
-│   ↓ Authorization: Bearer <Pangolin key>   (复用现有 MCP 鉴权，JWT/pgl_ 都收)
+│   ↓ Authorization: Bearer <Pangolinfo key>   (复用现有 MCP 鉴权，JWT/pgl_ 都收)
 ├─ pangolinfo-datascaler-mcp    【本仓 · 纯转发层】
-│   · 工具定义 + server instructions + 面向用户话术（全部 Pangolin 写）
+│   · 工具定义 + server instructions + 面向用户话术（全部 Pangolinfo 写）
 │   · 不持 DataScaler 凭证、不知道扣费、不碰额度
 │   · 职责：MCP 协议转换 + 异步轮询编排（工具描述引导）+ 错误透传翻译
-│   ↓ 调 /extapi/social/*   带 Pangolin key + 从会话取的 userId
+│   ↓ 调 /extapi/social/*   带 Pangolinfo key + 从会话取的 userId
 ├─ crawler-ext-service          【现有 Java 后端 · 新增 social 模块】
 │   · DataScaler client：client_credentials 换 token + 缓存复用（<1h）
-│   · 注入 X-DataScaler-External-User-Id = Pangolin 自己的 userId
+│   · 注入 X-DataScaler-External-User-Id = Pangolinfo 自己的 userId
 │   · 扣费闸门：refresh/analyze/summary/setup 受理即扣不退；只读放行
-│   · DataScaler 错误码 → Pangolin 6 类错误模型映射
+│   · DataScaler 错误码 → Pangolinfo 6 类错误模型映射
 │   ↓ Authorization: Bearer <ds_at> + X-DataScaler-External-User-Id
 └─ DataScaler Partner API  (https://mcp-api.datascaler.ai/partner/v1)
 ```
@@ -44,14 +44,14 @@ MCP 可独立替换不影响扣费；Java 换上游不影响 MCP。
 
 | 决策 | 结论 |
 |---|---|
-| 扣费时机 | **受理即扣**：拿到 DataScaler 受理凭证（jobId / 报告 200）即扣 Pangolin 用户额度 |
+| 扣费时机 | **受理即扣**：拿到 DataScaler 受理凭证（jobId / 报告 200）即扣 Pangolinfo 用户额度 |
 | 退费 | **A1 一律不退**。DataScaler 成功率有保障，不做 failed 补偿，Java 不需维护 jobId↔流水映射 |
 | 只读端点 | **全免费** |
 | 扣费工具 | 仅 4 个：`setup_brand` `refresh_brand` `analyze_brand` `get_brand_summary` |
-| 双闸门 | Java 扣费闸门先查 Pangolin 用户额度→不足直接返回 QUOTA（你们话术+充值入口），**根本不调 DataScaler**。只有 Pangolin 额度够但上游渠道池耗尽时才撞上游 402（兜底） |
+| 双闸门 | Java 扣费闸门先查 Pangolinfo 用户额度→不足直接返回 QUOTA（你们话术+充值入口），**根本不调 DataScaler**。只有 Pangolinfo 额度够但上游渠道池耗尽时才撞上游 402（兜底） |
 
 > DataScaler 侧：`refresh` 启动任务即扣它的渠道批发池（它先找 url 再采集，启动即扣），`analyze` 每次扣。
-> 这是上游对 Pangolin 渠道的扣费；Pangolin 对终端用户的零售扣费是独立决策，此处选「跟随上游、受理即扣不退」。
+> 这是上游对 Pangolinfo 渠道的扣费；Pangolinfo 对终端用户的零售扣费是独立决策，此处选「跟随上游、受理即扣不退」。
 
 ---
 
@@ -94,7 +94,7 @@ snake_case 命名，沿用现有 `pangolinfo-mcp` 风格。
 ① refresh_brand
    MCP → Java → DataScaler POST /refresh
    DataScaler 启动任务【扣它的渠道池】
-   Java 拿到 jobId = 受理成功 → 扣 Pangolin 用户额度（A1 不退）
+   Java 拿到 jobId = 受理成功 → 扣 Pangolinfo 用户额度（A1 不退）
    ← { jobId, queuePosition, etaMinutes } 立即返回
    工具描述引导 agent：「已开始采集，约 X 分钟，请稍后用 get_refresh_progress 查询，勿干等」
 
@@ -112,10 +112,10 @@ snake_case 命名，沿用现有 `pangolinfo-mcp` 风格。
 
 ## 5. 错误透传与映射
 
-DataScaler 错误码 → Pangolin 6 类错误模型（AUTH / QUOTA / RATE_LIMIT / BAD_INPUT / SERVER / NETWORK，仅后 3 类可重试）。
+DataScaler 错误码 → Pangolinfo 6 类错误模型（AUTH / QUOTA / RATE_LIMIT / BAD_INPUT / SERVER / NETWORK，仅后 3 类可重试）。
 **映射在 Java 后端做**，MCP 只把结构化错误翻成用户话术。
 
-| DataScaler code | HTTP | → Pangolin | 可重试 | 话术方向 |
+| DataScaler code | HTTP | → Pangolinfo | 可重试 | 话术方向 |
 |---|---|---|---|---|
 | `UNAUTHORIZED`/`TOKEN_EXPIRED` | 401 | SERVER | Java 重换 token 重试 | 对用户透明，不暴露 |
 | `INVALID_INPUT` | 400 | BAD_INPUT | 否 | 「参数有误」引导修正 |
@@ -129,7 +129,7 @@ DataScaler 错误码 → Pangolin 6 类错误模型（AUTH / QUOTA / RATE_LIMIT 
 | `INTERNAL_ERROR`/`BACKEND_ERROR` | 5xx | SERVER | 稍后 | 「系统繁忙」带 requestId |
 
 **三个关键点：**
-- **(a) 双闸门**：Java 扣费闸门先拦 Pangolin 额度不足（返回自己的 QUOTA + 充值入口，不调上游）；只有额度够但上游池耗尽才撞上游 402。用户永远只看 Pangolin 话术。
+- **(a) 双闸门**：Java 扣费闸门先拦 Pangolinfo 额度不足（返回自己的 QUOTA + 充值入口，不调上游）；只有额度够但上游池耗尽才撞上游 402。用户永远只看 Pangolinfo 话术。
 - **(b) requestId 全链透传**：DataScaler 每次返回 requestId（契约 §11），Java 记日志 + 塞进错误响应，MCP 透传。排障对线 DataScaler 的唯一凭证。Java 另生成自己的 traceId 一并记。
 - **(c) token 过期对用户透明**：上游 401 是 Java↔DataScaler 的 token 过期，**不是终端用户鉴权问题**。Java 捕获 → 重换 token → 重试一次，用户无感。**绝不能透传成用户的 AUTH 错误**（会误导用户以为自己 key 错）。
 
@@ -140,7 +140,7 @@ DataScaler 错误码 → Pangolin 6 类错误模型（AUTH / QUOTA / RATE_LIMIT 
 契约 §4：扣费写操作必须带 `idempotencyKey`，重试同 key 不重复扣费。
 
 - 4 个扣费工具（setup/refresh/analyze/summary）支持可选 `idempotencyKey`；**agent 不传时由 Java 自动生成**（userId+brandId+操作+时间窗哈希）。
-- **双侧幂等**：上游幂等防 DataScaler 重复采集；**Java 自身幂等防 Pangolin 重复扣费**（同 key 扣费动作只执行一次）。
+- **双侧幂等**：上游幂等防 DataScaler 重复采集；**Java 自身幂等防 Pangolinfo 重复扣费**（同 key 扣费动作只执行一次）。
 
 ---
 
@@ -148,7 +148,7 @@ DataScaler 错误码 → Pangolin 6 类错误模型（AUTH / QUOTA / RATE_LIMIT 
 
 契约 §9.2：`systemPromptOverride` 只能改「怎么说」（分析框架/报告结构/输出口吻/角色/侧重点），
 **改不了「数据怎么来/指标怎么算」**（数据检索口径、指标定义、RAG 装配、底层取数）。
-DataScaler 服务端把数据口径段固定在前并声明不可覆盖，再拼接 Pangolin 的覆盖段。
+DataScaler 服务端把数据口径段固定在前并声明不可覆盖，再拼接 Pangolinfo 的覆盖段。
 → 写进 `analyze_brand` 工具描述，避免 agent 误以为能操控取数。
 
 ---
@@ -320,9 +320,9 @@ DataScaler 发布 v0.3 接入指南,重大变化。基于新指南 + staging 全
 ### 核心变化
 1. **知识空间(默认接入)**:`prepare_space`(出计划,免费)→ `create_space`(建空间+首采,扣费)。空间底层=品牌,spaceId=brandId。`setup_brand`(完整品牌)降为高级用法。
 2. **计费改积分模型**:采集按 `(1+竞品)×渠道×页数×0.25` 算 credits,**采集完成时结算**;取代旧的"受理即扣固定价"。
-   - Java 计费:`chargeByEstimate` 先调上游拿 `data.billing.estimatedCredits`,再按 `estimatedCredits × creditToPointRatio`(默认 600,向上取整)扣 Pangolin 积分。analyze 固定 1 credit。
+   - Java 计费:`chargeByEstimate` 先调上游拿 `data.billing.estimatedCredits`,再按 `estimatedCredits × creditToPointRatio`(默认 600,向上取整)扣 Pangolinfo 积分。analyze 固定 1 credit。
    - v1.0 chargedAmount===estimatedCredits(无实采校准),受理时按预估扣即准确。
-   - 零售倍率 `datascaler.credit-to-point-ratio` 可配(成本参考:1 credit≈$1,Pangolin $19=9600积分→1credit≈505积分成本,默认 600≈1.2x)。
+   - 零售倍率 `datascaler.credit-to-point-ratio` 可配(成本参考:1 credit≈$1,Pangolinfo $19=9600积分→1credit≈505积分成本,默认 600≈1.2x)。
 3. **depth 深度**:quick=3/standard=5/full=10 页。refresh 加 depth/maxPages,移除 idempotencyKey(v0.3 schema 不用)。
 4. **一批新端点全部实测可用**:context/actions/errors-explain/usage/usage-events/diagnose/refresh-wait/spaces-prepare/spaces。
 

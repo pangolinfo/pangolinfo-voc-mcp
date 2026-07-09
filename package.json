@@ -1,7 +1,7 @@
 {
   "name": "pangolinfo-datascaler-mcp",
-  "version": "0.2.4",
-  "description": "Pangolin DataScaler MCP server - white-label brand social-media insight tools (brands, refresh, posts, sentiment, voice-share, competitors, risk-alerts, analyze) for AI assistants via Model Context Protocol.",
+  "version": "0.2.5",
+  "description": "Pangolinfo DataScaler MCP server - white-label brand social-media insight tools (brands, refresh, posts, sentiment, voice-share, competitors, risk-alerts, analyze) for AI assistants via Model Context Protocol.",
   "type": "module",
   "license": "MIT",
   "author": "Pangolinfo <support@pangolinfo.com>",

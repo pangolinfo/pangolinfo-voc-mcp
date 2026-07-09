@@ -13,7 +13,7 @@ AI 客户端 → MCP(本仓) → Java(crawler-ext-service /api/v1/social/*) → 
 本目录用 `demo-client.mjs` 扮演 **AI 客户端**（走真实 MCP 协议），用 `mock-backend.mjs`
 扮演中间的 **Java 那一跳**（仅做最小转发，看数据流）。
 
-> ⚠️ `mock-backend.mjs` **不是生产代码**。真实 Java 还会做：校验 Pangolin API Key、
+> ⚠️ `mock-backend.mjs` **不是生产代码**。真实 Java 还会做：校验 Pangolinfo API Key、
 > 从已认证会话取 userId、扣费（受理即扣、按操作差异化定价）、错误码映射。
 > mock 只注入 DataScaler token + 一个演示用 externalUserId 后透传。
 

@@ -1,10 +1,10 @@
 # pangolinfo-datascaler-mcp
 
-Pangolin 白标 **品牌社媒洞察(VOC) MCP**。本仓是 MCP 协议层,对 AI 客户端暴露品牌/话题社媒采集、读取和分析工具。
+Pangolinfo 白标 **品牌社媒洞察(VOC) MCP**。本仓是 MCP 协议层,对 AI 客户端暴露品牌/话题社媒采集、读取和分析工具。
 
 ## 架构
 
-终端 AI 用户只看到 Pangolin。本仓不持有 DataScaler 凭证、不做扣费、不碰批发账户额度。凭证缓存、`externalUserId` 注入、积分扣费、错误映射和白标净化都在 Java 后端 `crawler-ext-service` 的 social 模块。
+终端 AI 用户只看到 Pangolinfo。本仓不持有 DataScaler 凭证、不做扣费、不碰批发账户额度。凭证缓存、`externalUserId` 注入、积分扣费、错误映射和白标净化都在 Java 后端 `crawler-ext-service` 的 social 模块。
 
 ```text
 AI 客户端
@@ -16,7 +16,7 @@ AI 客户端
 生产 MCP 地址:
 
 ```text
-https://datascaler-voc.pangolinfo.com/mcp?api_key=<Pangolin JWT/API key>
+https://voc.pangolinfo.com/mcp?api_key=<Pangolinfo JWT/API key>
 ```
 
 ## 工具
@@ -42,7 +42,7 @@ prepare_space (免费出计划/estimatedPoints)
 
 ## 计费
 
-只读工具全免费。采集类工具 `create_space` / `refresh_brand` / `setup_brand` 在上游受理成功并返回预估后,按 Pangolin 积分口径记账:
+只读工具全免费。采集类工具 `create_space` / `refresh_brand` / `setup_brand` 在上游受理成功并返回预估后,按 Pangolinfo 积分口径记账:
 
 ```text
 积分 = 品牌数 * 渠道数 * 关键词数 * 页数 * 12
@@ -55,7 +55,7 @@ credits = 品牌数 * 渠道数 * 关键词数 * 页数 * 0.02
 积分 = credits * 600
 ```
 
-`analyze_brand` 是同步深度分析,成功且未命中套餐 AI 额度时按 600 积分/次记账。`get_brand_summary` 免费。
+`analyze_brand` 是同步深度分析,成功按 600 积分/次记账。`get_brand_summary` 免费。
 
 ## 平台
 
@@ -93,4 +93,4 @@ npm run dev -- --transport=http --port=3000
 curl http://localhost:3000/health
 ```
 
-生产构建使用 Dockerfile。ACK 部署镜像 tag 以实际发布为准,当前版本为 `0.2.4`。
+生产构建使用 Dockerfile。ACK 部署镜像 tag 以实际发布为准,当前版本为 `0.2.5`。

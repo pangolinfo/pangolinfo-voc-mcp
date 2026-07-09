@@ -29,16 +29,16 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
     return {
       version: SERVER_VERSION,
       product: t({
-        zh: "Pangolin 品牌社媒洞察(白标)。监测品牌/话题在 TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot 等的声量、情感、竞品、风险,并做 AI 深度分析。",
-        en: "Pangolin brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot, plus AI deep analysis.",
+        zh: "Pangolinfo 品牌社媒洞察(白标)。监测品牌/话题在 TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot 等的声量、情感、竞品、风险,并做 AI 深度分析。",
+        en: "Pangolinfo brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot, plus AI deep analysis.",
       }),
       onboarding: t({
         zh: "默认走【知识空间】(轻量快道):prepare_space(出计划+费用,免费) → 用户确认行业(必选)+渠道+页数 → create_space(建空间+首采,扣费)。只有要竞品对比/官网/定时监测/Amazon 评论才用 setup_brand(完整品牌);Amazon 评论必须传 amazonProducts。",
         en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + pages → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring/Amazon reviews; Amazon reviews require amazonProducts.",
       }),
       charging: t({
-        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×渠道数×关键词数×页数×12积分计费,采集受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣;命中套餐 AI 额度则 0)。prepare_space/get_brand_summary 免费。",
-        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × channelCount × keywordCount × pages × 12 points, recorded by estimate after collection acceptance. analyze_brand = 600 points on success (0 if within plan AI quota). prepare_space/get_brand_summary are free.",
+        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×渠道数×关键词数×页数×12积分计费,采集受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣)。prepare_space/get_brand_summary 免费。",
+        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × channelCount × keywordCount × pages × 12 points, recorded by estimate after collection acceptance. analyze_brand = 600 points on success. prepare_space/get_brand_summary are free.",
       }),
       asyncModel: t({
         zh: "采集是异步的:create_space/refresh_brand/setup_brand(首采)返回 jobId,用 get_refresh_progress(jobId) 轮询到 completed/partial 再读数据,或 wait_for_refresh 短等。绝不原地干等或重复发起。analyze_brand 是【同步】的,直接返回报告(可能耗时,耐心等)。",
