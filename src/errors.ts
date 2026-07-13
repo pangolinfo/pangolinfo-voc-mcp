@@ -75,7 +75,7 @@ export function codeFromBizCode(bizCode: number): PangolinfoErrorCode {
       return "AUTH";
     case 2001: // BALANCE_INSUFFICIENT
     case 2005: // ACCOUNT_NOT_HAVE_VALID_SETMEAL
-    case 2007: // ACCOUNT_ALREADY_EXPIRED(social_api 余额池未开通也会落这里)
+    case 2007: // ACCOUNT_ALREADY_EXPIRED
     case 2009: // USAGE_LIMIT_EXCEEDED
     case 2010: // ACCOUNT_BILL_DAY_MISSING
       return "QUOTA";
@@ -138,8 +138,8 @@ export function hintFor(code: PangolinfoErrorCode): string {
       });
     case "QUOTA":
       return t({
-        zh: `社媒洞察额度不足或套餐已过期(重试无用)。请告知用户前往 ${url} 充值或升级套餐后再试。注:社媒洞察用独立额度池(social_api),与采集 API 额度分开。`,
-        en: `Out of social-insight credits or plan expired (retrying won't help). Tell the user to top up / upgrade at ${url}. Note: social insight uses a separate credit pool (social_api).`,
+        zh: `社媒洞察额度不足、账期上限不足或套餐已过期(重试无用)。先用 get_context 看 billingMode:prepaid 用户请前往 ${url} 充值/升级;postpaid 用户请联系账户管理员或 Pangolinfo 支持调整账期上限。`,
+        en: `Social-insight quota is insufficient, the billing-period cap is exceeded, or the plan expired (retrying won't help). First call get_context and check billingMode: prepaid users should top up/upgrade at ${url}; postpaid users should contact their account admin or Pangolinfo support to adjust the period cap.`,
       });
     case "RATE_LIMIT":
       return t({

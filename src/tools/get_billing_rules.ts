@@ -80,8 +80,8 @@ Returns: { formula, unitPrice, factors, examples, analyzeBrand, free }.`,
         en: "analyze_brand (AI deep analysis): 600 points/call, charged only on success",
       }),
       billingMode: t({
-        zh: "两种计费模式并存,当前用户是哪种见 get_context.billingMode。预付费:扣 Pangolinfo 积点(充值积点即用,余额不足报额度不足);后付费:不扣积点,按账期用量月底结算(有账期用量上限,超上限报额度不足)。两种模式的采集/分析单价相同(本工具公式),仅结算方式不同。",
-        en: "Two billing modes coexist; which one applies to the current user — see get_context.billingMode. Prepaid: deducts Pangolinfo points (top up points to use; insufficient balance → quota error). Postpaid: no points deducted, settled monthly by billing-period usage (with a period usage cap; over cap → quota error). Per-call unit prices are identical for both (see this tool's formula); only the settlement method differs.",
+        zh: "两种计费模式并存,当前用户是哪种见 get_context 返回的 result.data.billingMode。prepaid:扣 Pangolinfo 积点(充值积点即用,余额不足报额度不足);postpaid:不扣也不展示积分余额,按账期用量月底结算(有账期用量上限,超上限报额度不足)。两种模式的采集/分析单价相同(本工具公式),仅结算方式不同。",
+        en: "Two billing modes coexist; which one applies to the current user — see result.data.billingMode from get_context. prepaid: deducts Pangolinfo points (top up points to use; insufficient balance → quota error). postpaid: no point balance is deducted or displayed; usage is settled monthly by billing-period usage (with a period usage cap; over cap → quota error). Per-call unit prices are identical for both (see this tool's formula); only the settlement method differs.",
       }),
       free: t({
         zh: "所有只读工具(metrics/posts/sentiment/voice-share/risk-alerts/...)、prepare_space、diagnose_brand、get_refresh_progress、wait_for_refresh、get_brand_summary、get_context、explain_error、get_billing_rules 全免费。",

@@ -17,10 +17,10 @@ export const socialCapabilities: Tool<typeof inputSchema> = {
   name: "social_capabilities",
   description: t({
     zh: `[自省 · 免费 · 0 调用] 一次性了解本 MCP:能干什么、默认怎么接入、哪些扣费、异步怎么轮询、典型工作流。
-AI 首次接入建议先调这个(或 get_context 拿实时账户数据)。纯本地数据,不打后端、不扣费。
+AI 首次接入建议先调这个(或 get_context 拿实时计费模式/品牌/平台)。纯本地数据,不打后端、不扣费。
 Returns: { version, product, onboarding, charging, asyncModel, tools[], workflows[], notes[] }。`,
     en: `[Self-introspection · FREE · 0 backend calls] One call to learn: what this MCP does, the default onboarding path, what's charged, how async polling works, typical workflows.
-Recommended first call (or get_context for live account data). Local only — no backend call, no charge.
+Recommended first call (or get_context for live billing mode/brands/platforms). Local only — no backend call, no charge.
 Returns: { version, product, onboarding, charging, asyncModel, tools[], workflows[], notes[] }.`,
   }),
   inputSchema,
@@ -37,8 +37,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
         en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + pages → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring/Amazon reviews; Amazon reviews require amazonProducts.",
       }),
       charging: t({
-        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×加权渠道单位×关键词数×页数×12积分计费(普通渠道=1,Threads=1,Reddit=2),采集受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣)。prepare_space/get_brand_summary 免费。",
-        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2), recorded by estimate after collection acceptance. analyze_brand = 600 points on success. prepare_space/get_brand_summary are free.",
+        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×加权渠道单位×关键词数×页数×12积分计费(普通渠道=1,Threads=1,Reddit=2),采集受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣)。prepare_space/get_brand_summary 免费。prepaid 扣积分余额;postpaid 不返回/不扣余额,按账期用量结算,单价相同。",
+        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2), recorded by estimate after collection acceptance. analyze_brand = 600 points on success. prepare_space/get_brand_summary are free. Prepaid deducts a point balance; postpaid returns/deducts no balance and is settled by billing-period usage at the same unit prices.",
       }),
       asyncModel: t({
         zh: "采集是异步的:create_space/refresh_brand/setup_brand(首采)返回 jobId,用 get_refresh_progress(jobId) 轮询到 completed/partial 再读数据,或 wait_for_refresh 短等。绝不原地干等或重复发起。analyze_brand 是【同步】的,直接返回报告(可能耗时,耐心等)。",
@@ -106,8 +106,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
           en: "[Wording & naming] Always call it a 'Knowledge Space' to users, not 'brand slot'. Prefer the official English brand name when one exists. Knowledge-Space social-discovery keywords must be English (CJK-containing keywords are dropped upstream; translate non-English topics).",
         }),
         t({
-          zh: "【计费细则】建知识空间/建品牌本身只占一个名额、不扣积分;积分在采集受理成功后按 estimatedPoints 预估记账,公式为品牌数×加权渠道单位×关键词数×页数×12。普通渠道=1、Threads=1、Reddit=2。所有计费金额保留 2 位小数。定时/长期监测请走 dashboard 或高级接入,直连 MCP 默认不排期。",
-          en: "[Billing details] Creating a space/brand only takes a slot and costs no points; collection is recorded by estimatedPoints after acceptance: brandCount × weightedChannelUnits × keywordCount × pages × 12. Normal channels=1, Threads=1, Reddit=2. All billing amounts keep 2 decimals. Scheduled/long-term monitoring goes through the dashboard or advanced onboarding — direct MCP does not schedule by default.",
+          zh: "【计费细则】建知识空间/建品牌本身只占一个名额、不扣积分;积分在采集受理成功后按 estimatedPoints 预估记账,公式为品牌数×加权渠道单位×关键词数×页数×12。普通渠道=1、Threads=1、Reddit=2。get_context 的 billingMode 表示结算方式:prepaid 扣积分余额;postpaid 按账期用量结算,不展示积分余额。所有计费金额保留 2 位小数。定时/长期监测请走 dashboard 或高级接入,直连 MCP 默认不排期。",
+          en: "[Billing details] Creating a space/brand only takes a slot and costs no points; collection is recorded by estimatedPoints after acceptance: brandCount × weightedChannelUnits × keywordCount × pages × 12. Normal channels=1, Threads=1, Reddit=2. get_context billingMode indicates settlement: prepaid deducts a point balance; postpaid is settled by billing-period usage and does not display a point balance. All billing amounts keep 2 decimals. Scheduled/long-term monitoring goes through the dashboard or advanced onboarding — direct MCP does not schedule by default.",
         }),
       ],
     };
