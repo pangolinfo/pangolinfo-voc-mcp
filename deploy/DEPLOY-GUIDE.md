@@ -1,4 +1,4 @@
-# DataScaler VOC MCP v0.3.1 — 阿里云 ACK 部署手册
+# DataScaler VOC MCP v0.3.2 — 阿里云 ACK 部署手册
 
 > 部署目标: 让 MCP 客户端通过 `https://voc.pangolinfo.com/mcp?api_key=pgl_xxx` 直接连云端 MCP server,无需安装任何东西。
 > 架构: AI 客户端 → 本 MCP(纯转发)→ Java scrapeapi(crawler-ext-service, 扣费在此)→ DataScaler Partner API。
@@ -11,7 +11,7 @@
 |---|---|
 | ACK 集群 | `crawler` @ ap-southeast-1 (新加坡), default namespace |
 | 镜像仓库 | `registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/datascaler-voc` |
-| 镜像 tag | `0.3.1`,`latest` |
+| 镜像 tag | `0.3.2`,`latest` |
 | 容器端口 | 3000 (HTTP) |
 | 探针路径 | `GET /health` |
 | MCP 协议端点 | `POST /mcp` |
@@ -39,7 +39,7 @@ cp scripts/window/docker-mcp.sh.example scripts/window/docker-mcp.sh
 
 ```cmd
 cd D:\newCode\pangolinfo-datascaler-mcp
-scripts\window\deploy-mcp.cmd 0.3.1
+scripts\window\deploy-mcp.cmd 0.3.2
 ```
 
 脚本会:切到根目录 → 通过 WSL 调 `docker-mcp.sh` → 在 WSL 内 `docker build`(Dockerfile 多阶段自己跑 npm ci + npm run build)→ `docker login` ACR → `docker push :<传入的 tag>` 和 `:latest`。
@@ -56,7 +56,7 @@ scripts\window\deploy-mcp.cmd 0.3.1
 
 **验证 Pod 日志**(工作负载 → 无状态 → datascaler-voc → 任一 Pod → 日志)应看到:
 ```
-[pangolinfo-datascaler-mcp] locale=en version=0.3.1
+[pangolinfo-datascaler-mcp] locale=en version=0.3.2
 [pangolinfo-datascaler-mcp] transport=http
 [pangolinfo-datascaler-mcp] http server listening on :3000; endpoint=/mcp health=/health; 25 tool(s) registered
 ```
@@ -84,7 +84,7 @@ DNS 生效后(Cloudflare 通常几分钟):
 ```bash
 # 1. health 检查 (无需 API key)
 curl https://voc.pangolinfo.com/health
-# 期望: {"status":"ok","version":"0.3.1","toolCount":25}
+# 期望: {"status":"ok","version":"0.3.2","toolCount":25}
 
 # 2. 列工具 (25 个)
 curl -X POST "https://voc.pangolinfo.com/mcp?api_key=pgl_xxx" \

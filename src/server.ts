@@ -82,12 +82,21 @@ const SERVER_INSTRUCTIONS = t({
 禁止:**不要**写外部轮询脚本去等它跑完(网络抖动会让脚本中断);**不要**建 host 侧一次性/定时自动化任务去"到点自动出报告"(这类定时器不可靠、常静默不触发,会让整条任务断掉)。
 正确姿势:① 告诉用户预计 15–45 分钟(~90% 在 3 小时内完成);② 不要空转干等,本轮可先结束或做别的只读事;③ 引导用户"下次回来发一句『查进度』",那时再用 get_refresh_progress(jobId) 查到 status=completed/partial;④ 只有想在同一轮里稍等片刻,才用 wait_for_refresh(≤20s,超时即返回当前进度 —— 超时就把控制权还给用户,不要 while 循环反复调)。完成后才有数据可读/可分析。analyze_brand 是同步的(直接返回报告,可能耗时,耐心等)。
 
-产出 VOC 报告(重要,决定报告质量):一份好报告不是只堆指标/词频,而是"有指标 + 有真实用户原话佐证 + 有定性叙事"。出报告前务必:
-1. **每个品牌捞 4–6 条真实用户帖子原文**——用 find_posts_about(按主题语义找,如"抱怨续航""夸相机")或 search_brand_posts(按平台/情感过滤),把带用户名/平台/情感分的真实引文放进报告。只有词频(如"battery drain 209")没有原话,report 会显得单薄、没有说服力。
-2. **驱动词配原话**:每个正/负面驱动词尽量配一句能佐证它的真实帖子,别让词频孤零零地列着。
-3. **每品牌写一段定性叙事**(卖点/痛点/机会),像分析师讲结论,而不是只给一个数据仪表盘。
-4. 竞品/横向对比时,除了指标表,也给每个品牌捞对比性的真实原话。
-遇 refreshing 锁的处理(常见坑,别卡死):若某品牌处于 refreshing/dataReady:false(常因某个平台如 TikTok 采集卡住,把整个品牌锁住),**帖子级读取(find_posts_about / search_brand_posts)会被阻塞报错**。此时不要卡在那里反复重试、也不要直接告诉用户"检索失败就没法做了";改走**不受该锁影响的路径**:聚合类读取(get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics)和 analyze_brand(同步深度分析)通常仍可用,先用它们产出能出的部分,并如实告诉用户"帖子级明细因某平台采集未完成暂不可用,待其收尾后可补齐引文"。
+产出 VOC 报告(重要):目标是让客户觉得"积点花得值"——尽量用你能拿到的真实数据,产出一份详尽、可追溯、对决策有用的报告。**报告的排版/结构/章节由你自己决定**(这里不规定固定模板),但请遵守下面的原则:
+【先问需求再动手】需求宽泛(如"出份 VOC 报告")时,先用一两个问题确认用户到底关心什么再产出:时间窗多长?重点看哪些平台?是要监控风险、还是找增长机会、还是竞品对比?针对什么决策(投放/产品/公关)?贴着用户目的的报告,比面面俱到的通用报告更让人觉得值。
+【铁律·数据不准编】报告里每一个数字、关键词次数、评论原文、互动数,都必须是工具真实返回的原样值——**严禁编造、估算、四舍五入补全或脑补**。工具没返回的字段就明确写"未返回/不可用",不要填一个看起来合理的值。缺失项如实标注,比编一个假数字可信得多。
+【尽量拉全 + 标注数据源】别只用一两个工具就下结论。这些免费只读工具各自能给你不同维度,能拉的都拉上,并在报告里标明每块数据来自哪个工具(客户能看到积点花在哪):
+  · get_brand_metrics —— 总帖子/提及/触达/互动;分平台指标;正/负面驱动词 TOP(带次数);分平台情感。
+  · get_brand_sentiment —— 整体与分平台正/中/负占比及条数。
+  · get_risk_alerts —— 高风险负面评论原文(带情感分/置信度/作者/所属帖子标题/平台/链接)、风险关键词聚类、平台负面尖峰。(注:此工具窗口通常是 72h,与报告的天数口径可能不同,如实标注。)
+  · find_posts_about / search_brand_posts —— 真实用户帖子/评论原文(含作者、平台、真实点赞/播放/触达数),既做正面样本也做负面样本。
+  · get_voice_share —— 竞品声量份额(仅在配置了竞品时有值;competitors 为空则标"未配置竞品/不可用")。
+  · get_brand_summary —— DataScaler 侧的 AI 摘要与建议,可作叙事骨架。
+【善用时间趋势】get_voice_share 返回的是**每日 trend 数组**(每天的帖子/提及/声量份额/情感)——别只看静态快照,用它呈现声量与情感随时间的变化,并做简单环比(如"上市/首周 vs 近一周"),趋势比单点更有洞察。
+【图表可视化】若产出 HTML 报告,尽量把关键数据画成图(可用内联 SVG,或引入 ECharts 这类库):分平台指标对比、正/负面驱动词 TOP 条形图、声量/情感 trend 折线。图 + 表 + 原话三者结合,远比纯文字表格直观、显得专业。图里的数值同样必须是真实返回值。
+【每块数据配一句结论】每张表/图/一组数据后面,紧跟一句"所以呢"(so-what)的结论,把数字翻译成对决策有用的判断(如"YouTube 是口碑引擎、Reddit 是风险黑洞"),别让数据和结论分离、也别只堆数据不给解读。
+【关注客户想看什么】客户要的是能落地的结论:哪些平台是口碑引擎、哪些是风险黑洞;用户具体在夸什么/骂什么(配真实原话,而非孤零零的词频);有哪些紧急风险信号、附真实高风险评论;可放大的正面内容方向、可复用的高触达样本;分优先级的行动建议。指标是骨架,真实原话和可追溯来源是让报告可信、显得值的关键。
+【遇 refreshing 锁】若品牌处于 refreshing/dataReady:false(常因某平台如 TikTok 采集卡住锁住整个品牌),帖子级读取(find_posts_about / search_brand_posts)会被阻塞报错。别卡在这反复重试、也别直接说"检索失败没法做";改用不受锁影响的聚合读取(get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics)和 analyze_brand 先出能出的部分,并如实告诉用户帖子级明细待该平台收尾后可补齐。
 
 计费:只读全免费。采集按 品牌数×加权渠道单位×关键词数×页数×12 积分 计(普通渠道=1,Threads=1,Reddit=2;受理成功后按预估记账);analyze_brand 每次 600 积分(成功才扣)。采集前务必用 prepare_space 的 estimatedPoints 给用户报价确认。prepaid 从积分余额扣;postpaid 不扣余额、按账期用量结算,但单价相同。
 
@@ -106,12 +115,21 @@ Async & polling (important — avoid these traps): collection is a long async jo
 Do NOT: write an external polling script to wait it out (a network blip kills the script); create a host-side one-shot/scheduled automation to "auto-produce the report at time T" (such timers are unreliable and often silently never fire, breaking the whole task).
 Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② do NOT busy-wait — end this turn or do other read-only work; ③ guide the user to "come back and say 'check progress'", then call get_refresh_progress(jobId) until status=completed/partial; ④ only to wait a moment within the SAME turn, use wait_for_refresh (≤20s, returns current progress on timeout — on timeout hand control back to the user, do NOT call it in a while loop). Data is readable/analyzable only after completion. analyze_brand is synchronous (returns the report directly; may take a while).
 
-Producing a VOC report (important — this determines report quality): a good report is NOT just a dashboard of metrics/word-frequencies — it's metrics + real user quotes as evidence + qualitative narrative. Before writing a report:
-1. **Pull 4–6 real user posts per brand** — use find_posts_about (semantic, e.g. "complaints about battery", "praise for camera") or search_brand_posts (filter by platform/sentiment), and put the actual quotes (with author/platform/sentiment score) into the report. Word-frequencies alone (e.g. "battery drain 209") with no quotes make the report thin and unconvincing.
-2. **Back driver-words with quotes**: for each positive/negative driver word, try to attach one real post that evidences it — don't leave frequencies listed in isolation.
-3. **Write a qualitative narrative per brand** (selling points / pain points / opportunities), like an analyst stating conclusions, not just a data dashboard.
-4. For competitor/side-by-side comparison, besides the metrics table, pull comparative real quotes for each brand too.
-Handling the refreshing lock (common trap — don't get stuck): if a brand is in refreshing / dataReady:false (often because one platform, e.g. TikTok, is stuck collecting and locks the whole brand), **post-level reads (find_posts_about / search_brand_posts) are blocked and error out**. Do NOT keep retrying or tell the user "search failed so it can't be done"; instead take the path NOT affected by this lock: aggregate reads (get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics) and analyze_brand (sync deep analysis) usually still work — use them to produce what you can, and honestly tell the user "post-level detail is temporarily unavailable because one platform's collection hasn't finished; quotes can be added once it wraps up".
+Producing a VOC report (important): the goal is to make the customer feel the points were well spent — use as much of the real data you can obtain to produce a thorough, traceable, decision-useful report. **You decide the report's layout/structure/sections (no fixed template is prescribed here)**, but follow these principles:
+[Clarify the need first] When the request is broad (e.g. "make a VOC report"), ask one or two questions to pin down what the user actually cares about before producing: how long a time window? which platforms matter most? monitoring risk vs finding growth opportunities vs competitor comparison? for what decision (ad spend / product / PR)? A report aligned to the user's purpose feels far more worth it than a generic all-in-one.
+[Hard rule — never fabricate data] Every number, keyword count, comment quote, and engagement figure in the report MUST be the tool's real returned value, verbatim — **never invent, estimate, round-to-fill, or infer**. If a tool didn't return a field, explicitly write "not returned / unavailable"; do not fill in a plausible-looking value. Honestly flagging a gap is far more credible than a fabricated number.
+[Pull broadly + cite sources] Don't conclude from just one or two tools. These free read-only tools each give a different dimension — pull whatever you can and label which tool each block of data came from (so the customer sees where their points went):
+  · get_brand_metrics — total posts/mentions/reach/engagement; per-platform metrics; positive/negative driver words TOP (with counts); per-platform sentiment.
+  · get_brand_sentiment — overall and per-platform positive/neutral/negative % and counts.
+  · get_risk_alerts — high-risk negative comment quotes (with sentiment score / confidence / author / source post title / platform / URL), risk-keyword clusters, per-platform negative spikes. (Note: this tool's window is usually 72h, which may differ from the report's day range — flag it honestly.)
+  · find_posts_about / search_brand_posts — real user posts/comments verbatim (with author, platform, real likes/views/reach), for both positive and negative samples.
+  · get_voice_share — competitor share of voice (only meaningful when competitors are configured; if competitors is empty, mark "no competitors configured / unavailable").
+  · get_brand_summary — DataScaler's AI summary and recommendations, usable as a narrative skeleton.
+[Use time trends] get_voice_share returns a **daily trend array** (per-day posts/mentions/share-of-voice/sentiment) — don't just read a static snapshot; use it to show how volume and sentiment change over time, with simple period-over-period deltas (e.g. "launch/first week vs last week"). Trends are more insightful than single points.
+[Visualize with charts] If producing an HTML report, chart the key data where you can (inline SVG, or pull in a library like ECharts): per-platform metric comparison, positive/negative driver-word TOP bar charts, volume/sentiment trend lines. Charts + tables + quotes together read far more clearly and professionally than plain text tables. Values in charts must also be the real returned values.
+[Pair each data block with a takeaway] After each table/chart/data group, add one "so-what" line that translates the numbers into a decision-useful judgment (e.g. "YouTube is the word-of-mouth engine, Reddit is the risk black hole"). Don't separate data from conclusions, and don't dump data without interpretation.
+[Focus on what the customer wants] Customers want actionable conclusions: which platforms are the word-of-mouth engines vs risk black holes; what users specifically praise/complain about (backed by real quotes, not bare word-frequencies); urgent risk signals with real high-risk comments; positive content directions to amplify and high-reach samples to reuse; prioritized action recommendations. Metrics are the skeleton; real quotes and traceable sources are what make the report credible and worth the spend.
+[Refreshing lock] If a brand is in refreshing / dataReady:false (often because one platform like TikTok is stuck collecting and locks the whole brand), post-level reads (find_posts_about / search_brand_posts) are blocked and error out. Don't keep retrying or say "search failed so it can't be done"; use the aggregate reads not affected by the lock (get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics) and analyze_brand to produce what you can, and honestly tell the user post-level detail can be added once that platform wraps up.
 
 Billing: all reads free. Collection costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2; estimated at acceptance); analyze_brand costs 600 points on success. Always quote prepare_space's estimatedPoints before collecting. Prepaid deducts a point balance; postpaid does not deduct a balance and is settled by billing-period usage, with the same unit prices.
 
