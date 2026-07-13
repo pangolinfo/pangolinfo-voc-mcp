@@ -82,6 +82,13 @@ const SERVER_INSTRUCTIONS = t({
 禁止:**不要**写外部轮询脚本去等它跑完(网络抖动会让脚本中断);**不要**建 host 侧一次性/定时自动化任务去"到点自动出报告"(这类定时器不可靠、常静默不触发,会让整条任务断掉)。
 正确姿势:① 告诉用户预计 15–45 分钟(~90% 在 3 小时内完成);② 不要空转干等,本轮可先结束或做别的只读事;③ 引导用户"下次回来发一句『查进度』",那时再用 get_refresh_progress(jobId) 查到 status=completed/partial;④ 只有想在同一轮里稍等片刻,才用 wait_for_refresh(≤20s,超时即返回当前进度 —— 超时就把控制权还给用户,不要 while 循环反复调)。完成后才有数据可读/可分析。analyze_brand 是同步的(直接返回报告,可能耗时,耐心等)。
 
+产出 VOC 报告(重要,决定报告质量):一份好报告不是只堆指标/词频,而是"有指标 + 有真实用户原话佐证 + 有定性叙事"。出报告前务必:
+1. **每个品牌捞 4–6 条真实用户帖子原文**——用 find_posts_about(按主题语义找,如"抱怨续航""夸相机")或 search_brand_posts(按平台/情感过滤),把带用户名/平台/情感分的真实引文放进报告。只有词频(如"battery drain 209")没有原话,report 会显得单薄、没有说服力。
+2. **驱动词配原话**:每个正/负面驱动词尽量配一句能佐证它的真实帖子,别让词频孤零零地列着。
+3. **每品牌写一段定性叙事**(卖点/痛点/机会),像分析师讲结论,而不是只给一个数据仪表盘。
+4. 竞品/横向对比时,除了指标表,也给每个品牌捞对比性的真实原话。
+遇 refreshing 锁的处理(常见坑,别卡死):若某品牌处于 refreshing/dataReady:false(常因某个平台如 TikTok 采集卡住,把整个品牌锁住),**帖子级读取(find_posts_about / search_brand_posts)会被阻塞报错**。此时不要卡在那里反复重试、也不要直接告诉用户"检索失败就没法做了";改走**不受该锁影响的路径**:聚合类读取(get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics)和 analyze_brand(同步深度分析)通常仍可用,先用它们产出能出的部分,并如实告诉用户"帖子级明细因某平台采集未完成暂不可用,待其收尾后可补齐引文"。
+
 计费:只读全免费。采集按 品牌数×加权渠道单位×关键词数×页数×12 积分 计(普通渠道=1,Threads=1,Reddit=2;受理成功后按预估记账);analyze_brand 每次 600 积分(成功才扣)。采集前务必用 prepare_space 的 estimatedPoints 给用户报价确认。prepaid 从积分余额扣;postpaid 不扣余额、按账期用量结算,但单价相同。
 
 报错处理:data not ready → 先 diagnose_brand / refresh_brand;额度不足 → 先看 get_context.billingMode,prepaid 引导充值/升级,postpaid 引导联系账户管理员或 Pangolinfo 支持调整账期上限;不懂的错误码 → explain_error。知识空间不支持 Amazon;如需 Amazon 评论,改用 setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts。品牌数据按用户隔离,只看得到自己的。`,
@@ -98,6 +105,13 @@ Onboarding strategy (important):
 Async & polling (important — avoid these traps): collection is a long async job, usually 15–45 min (~90% done within 3h). create_space/refresh_brand/setup_brand return a jobId immediately; collection does NOT finish on the spot.
 Do NOT: write an external polling script to wait it out (a network blip kills the script); create a host-side one-shot/scheduled automation to "auto-produce the report at time T" (such timers are unreliable and often silently never fire, breaking the whole task).
 Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② do NOT busy-wait — end this turn or do other read-only work; ③ guide the user to "come back and say 'check progress'", then call get_refresh_progress(jobId) until status=completed/partial; ④ only to wait a moment within the SAME turn, use wait_for_refresh (≤20s, returns current progress on timeout — on timeout hand control back to the user, do NOT call it in a while loop). Data is readable/analyzable only after completion. analyze_brand is synchronous (returns the report directly; may take a while).
+
+Producing a VOC report (important — this determines report quality): a good report is NOT just a dashboard of metrics/word-frequencies — it's metrics + real user quotes as evidence + qualitative narrative. Before writing a report:
+1. **Pull 4–6 real user posts per brand** — use find_posts_about (semantic, e.g. "complaints about battery", "praise for camera") or search_brand_posts (filter by platform/sentiment), and put the actual quotes (with author/platform/sentiment score) into the report. Word-frequencies alone (e.g. "battery drain 209") with no quotes make the report thin and unconvincing.
+2. **Back driver-words with quotes**: for each positive/negative driver word, try to attach one real post that evidences it — don't leave frequencies listed in isolation.
+3. **Write a qualitative narrative per brand** (selling points / pain points / opportunities), like an analyst stating conclusions, not just a data dashboard.
+4. For competitor/side-by-side comparison, besides the metrics table, pull comparative real quotes for each brand too.
+Handling the refreshing lock (common trap — don't get stuck): if a brand is in refreshing / dataReady:false (often because one platform, e.g. TikTok, is stuck collecting and locks the whole brand), **post-level reads (find_posts_about / search_brand_posts) are blocked and error out**. Do NOT keep retrying or tell the user "search failed so it can't be done"; instead take the path NOT affected by this lock: aggregate reads (get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics) and analyze_brand (sync deep analysis) usually still work — use them to produce what you can, and honestly tell the user "post-level detail is temporarily unavailable because one platform's collection hasn't finished; quotes can be added once it wraps up".
 
 Billing: all reads free. Collection costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2; estimated at acceptance); analyze_brand costs 600 points on success. Always quote prepare_space's estimatedPoints before collecting. Prepaid deducts a point balance; postpaid does not deduct a balance and is settled by billing-period usage, with the same unit prices.
 

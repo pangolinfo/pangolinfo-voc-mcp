@@ -83,6 +83,10 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
           zh: "深度问答:确认品牌已采集完成 → analyze_brand(600 积分,同步返回报告)。一句话总结用 get_brand_summary(免费)。",
           en: "Deep Q&A: ensure data → analyze_brand (600 points, sync). Quick summary: get_brand_summary (free).",
         }),
+        t({
+          zh: "产出 VOC 报告(重要):数据就绪后,别只堆指标/词频。每品牌先用 find_posts_about/search_brand_posts 捞 4–6 条真实用户原话(带用户名/平台/情感分)→ 用 get_brand_metrics/get_brand_sentiment/get_voice_share/get_risk_alerts 取指标 → 把驱动词配上原话佐证、每品牌写一段定性叙事(卖点/痛点/机会)。有指标+真实引文+叙事的报告才有说服力。",
+          en: "Produce a VOC report (important): once data is ready, don't just stack metrics/word-frequencies. Per brand, first pull 4–6 real user quotes via find_posts_about/search_brand_posts (with author/platform/sentiment) → get metrics via get_brand_metrics/get_brand_sentiment/get_voice_share/get_risk_alerts → back driver-words with quotes and write a qualitative narrative (selling points/pain points/opportunities) per brand. A report with metrics + real quotes + narrative is what's convincing.",
+        }),
       ],
       notes: [
         t({
@@ -98,8 +102,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
           en: "Supported platforms: default 7 social channels tiktok/instagram/youtube/x/facebook/pinterest/trustpilot (pre-selected in prepare_space, each = 1 channel unit); optional threads (=1) and reddit (=2, double channel units, off by default); amazon_reviews is not social + needs an ASIN or Amazon product URL, excluded from the Knowledge Space flow (use setup_brand + amazonProducts for Amazon reviews). Billing uses channel units: 12 points per brand/channel-unit/keyword/page. For unsupported platforms (e.g. Xiaohongshu/Weibo/LinkedIn) tell the user they're unsupported and only suggest alternatives from the supported list.",
         }),
         t({
-          zh: "【数据就绪门禁】dataReady = 最近一次采集 completed **且** 采到帖子数>0(采到 0 帖仍算 stale、非故障,常见于新建空品牌或关键词在数据源无内容)。读类工具/analyze_brand 前应确保就绪:数据未就绪会报 DATA_NOT_READY、采集在跑会报 REFRESH_IN_PROGRESS —— 这两种都是可等待的,先 get_refresh_progress 等 completed 再读,不要当失败。",
-          en: "[Data-readiness gate] dataReady = last collection completed AND posts>0 (0 posts still counts as stale, NOT a failure — common for a brand-new empty space or keywords with no content in the source). Ensure readiness before read tools / analyze_brand: not-ready → DATA_NOT_READY, collection running → REFRESH_IN_PROGRESS — both are waitable, poll get_refresh_progress until completed then read; don't treat them as failures.",
+          zh: "【数据就绪门禁 + refreshing 锁绕行】dataReady = 最近一次采集 completed **且** 采到帖子数>0(采到 0 帖仍算 stale、非故障,常见于新建空品牌或关键词在数据源无内容)。读类工具/analyze_brand 前应确保就绪:数据未就绪会报 DATA_NOT_READY、采集在跑会报 REFRESH_IN_PROGRESS —— 这两种都是可等待的,先 get_refresh_progress 等 completed 再读,不要当失败。**重要:若某平台(如 TikTok)采集卡住,整个品牌会被锁在 refreshing 状态,此时帖子级读取(find_posts_about / search_brand_posts)会被阻塞报错,但聚合类读取(get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics)和 analyze_brand 通常不受影响 —— 别卡在帖子检索失败上,改用这些绕过锁先出能出的部分。**",
+          en: "[Data-readiness gate + refreshing-lock workaround] dataReady = last collection completed AND posts>0 (0 posts still counts as stale, NOT a failure — common for a brand-new empty space or keywords with no content in the source). Ensure readiness before read tools / analyze_brand: not-ready → DATA_NOT_READY, collection running → REFRESH_IN_PROGRESS — both are waitable, poll get_refresh_progress until completed then read; don't treat them as failures. **Important: if one platform (e.g. TikTok) is stuck collecting, the whole brand gets locked in the refreshing state; post-level reads (find_posts_about / search_brand_posts) are then blocked and error out, but aggregate reads (get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics) and analyze_brand usually still work — don't get stuck on post-search failing; use those to produce what you can.**",
         }),
         t({
           zh: "【用语与命名】对用户一律称「知识空间」,不要说「品牌位/品牌位额度」。品牌名有官方英文写法时优先用官方英文名。知识空间的社媒发现关键词必须用英文(含中日韩字符的词会被上游丢弃,中文话题请译成英文)。",
