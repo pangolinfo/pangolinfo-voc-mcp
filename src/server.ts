@@ -71,33 +71,37 @@ const SERVER_INSTRUCTIONS = t({
   zh: `Pangolinfo 品牌社媒洞察(白标)。监测品牌/话题在社媒(TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot)的声量、情感、竞品、风险,并做 AI 深度分析。
 
 接入策略(重要):
-1. 首次接入先调 social_capabilities(自省) 或 get_context(实时账户/品牌/额度)。
+1. 首次接入先调 social_capabilities(自省) 或 get_context(实时计费模式/品牌/平台)。get_context 的 result.data.billingMode 为 prepaid 或 postpaid;postpaid 用户按账期记账,不要向用户询问或展示积分余额。
 2. 用户想"看看某品牌/话题在讨论什么" → 默认走【知识空间】轻量快道:
    a) prepare_space(query) 出计划(行业候选+建议关键词+渠道+页数档位及每档 estimatedPoints),不扣费;
    b) 把行业候选和预计积分(estimatedPoints)给用户看,让用户确认【行业(必选)+渠道+页数】;
-   c) create_space(name, industries, platforms, maxPages) 建空间并首采(扣费,返回 spaceId + 采集 jobId)。
+   c) create_space(name, industries, platforms, maxPages, userConfirmed:true) 建空间并首采(扣费,返回 spaceId + 采集 jobId)。**userConfirmed 是付费闸门:必填 true,且只有在你已用 estimatedPoints 向用户报价、拿到用户明确同意后才可置 true;未报价确认就调用会被拒(BAD_INPUT)。**
 3. 只有用户明确要长期精细监测(竞品对比/官网/定时刷新/Amazon 评论)才用 setup_brand(完整品牌)。Amazon 评论必须同时提供 amazonProducts[{asin 或 url}]。
 
-异步与轮询:采集是异步的。create_space/refresh_brand/setup_brand 立即返回 jobId,**绝不要阻塞干等**;用 get_refresh_progress(jobId) 轮询到 status=completed/partial,或 wait_for_refresh 短等。完成后才有数据可读/可分析。analyze_brand 是同步的(直接返回报告,可能耗时,耐心等)。
+异步与轮询(重要,别踩坑):采集是异步长任务,通常 15–45 分钟(~90% 在 3 小时内完成)。create_space/refresh_brand/setup_brand 立即返回 jobId,**采集不会当场完成**。
+禁止:**不要**写外部轮询脚本去等它跑完(网络抖动会让脚本中断);**不要**建 host 侧一次性/定时自动化任务去"到点自动出报告"(这类定时器不可靠、常静默不触发,会让整条任务断掉)。
+正确姿势:① 告诉用户预计 15–45 分钟(~90% 在 3 小时内完成);② 不要空转干等,本轮可先结束或做别的只读事;③ 引导用户"下次回来发一句『查进度』",那时再用 get_refresh_progress(jobId) 查到 status=completed/partial;④ 只有想在同一轮里稍等片刻,才用 wait_for_refresh(≤20s,超时即返回当前进度 —— 超时就把控制权还给用户,不要 while 循环反复调)。完成后才有数据可读/可分析。analyze_brand 是同步的(直接返回报告,可能耗时,耐心等)。
 
-计费:只读全免费。采集按 品牌数×加权渠道单位×关键词数×页数×12 积分 计(普通渠道=1,Threads=1,Reddit=2;受理成功后按预估记账);analyze_brand 每次 600 积分(成功才扣)。采集前务必用 prepare_space 的 estimatedPoints 给用户报价确认。
+计费:只读全免费。采集按 品牌数×加权渠道单位×关键词数×页数×12 积分 计(普通渠道=1,Threads=1,Reddit=2;受理成功后按预估记账);analyze_brand 每次 600 积分(成功才扣)。采集前务必用 prepare_space 的 estimatedPoints 给用户报价确认。prepaid 从积分余额扣;postpaid 不扣余额、按账期用量结算,但单价相同。
 
-报错处理:data not ready → 先 diagnose_brand / refresh_brand;额度不足 → 引导用户充值(错误里有 links);不懂的错误码 → explain_error。知识空间不支持 Amazon;如需 Amazon 评论,改用 setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts。品牌数据按用户隔离,只看得到自己的。`,
+报错处理:data not ready → 先 diagnose_brand / refresh_brand;额度不足 → 先看 get_context.billingMode,prepaid 引导充值/升级,postpaid 引导联系账户管理员或 Pangolinfo 支持调整账期上限;不懂的错误码 → explain_error。知识空间不支持 Amazon;如需 Amazon 评论,改用 setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts。品牌数据按用户隔离,只看得到自己的。`,
   en: `Pangolinfo brand social insight (white-label). Monitor a brand/topic's voice/sentiment/competitors/risk across social platforms (TikTok/X/YouTube/Instagram/Facebook/Pinterest/Trustpilot), plus AI deep analysis.
 
 Onboarding strategy (important):
-1. On first use call social_capabilities (introspection) or get_context (live account/brands/quota).
+1. On first use call social_capabilities (introspection) or get_context (live billing mode/brands/platforms). get_context result.data.billingMode is either prepaid or postpaid; postpaid users are settled by billing period, so do not ask for or display a point balance.
 2. When a user wants to "see what's being said about brand/topic X" → default to the lightweight Knowledge Space path:
    a) prepare_space(query) → plan (industry candidates + suggested keywords + platforms + page tiers each with estimatedPoints), no charge;
    b) show the industry candidates and estimated points (estimatedPoints) to the user and confirm [industry (required) + platforms + pages];
-   c) create_space(name, industries, platforms, maxPages) → creates the space + first collection (charged; returns spaceId + collection jobId).
+   c) create_space(name, industries, platforms, maxPages, userConfirmed:true) → creates the space + first collection (charged; returns spaceId + collection jobId). **userConfirmed is a charge gate: required true, and you may set it true ONLY after you have quoted the cost to the user from estimatedPoints and they explicitly agreed; calling without quoting is rejected (BAD_INPUT).**
 3. Use setup_brand (full brand) only when the user explicitly wants long-term fine-grained monitoring (competitor comparison / official site / scheduled refresh / Amazon reviews). Amazon reviews require amazonProducts[{asin or url}].
 
-Async & polling: collection is async. create_space/refresh_brand/setup_brand return a jobId immediately — NEVER busy-wait; poll get_refresh_progress(jobId) until status=completed/partial, or wait_for_refresh briefly. Data is readable/analyzable only after completion. analyze_brand is synchronous (returns the report directly; may take a while).
+Async & polling (important — avoid these traps): collection is a long async job, usually 15–45 min (~90% done within 3h). create_space/refresh_brand/setup_brand return a jobId immediately; collection does NOT finish on the spot.
+Do NOT: write an external polling script to wait it out (a network blip kills the script); create a host-side one-shot/scheduled automation to "auto-produce the report at time T" (such timers are unreliable and often silently never fire, breaking the whole task).
+Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② do NOT busy-wait — end this turn or do other read-only work; ③ guide the user to "come back and say 'check progress'", then call get_refresh_progress(jobId) until status=completed/partial; ④ only to wait a moment within the SAME turn, use wait_for_refresh (≤20s, returns current progress on timeout — on timeout hand control back to the user, do NOT call it in a while loop). Data is readable/analyzable only after completion. analyze_brand is synchronous (returns the report directly; may take a while).
 
-Billing: all reads free. Collection costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2; estimated at acceptance); analyze_brand costs 600 points on success. Always quote prepare_space's estimatedPoints before collecting.
+Billing: all reads free. Collection costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2; estimated at acceptance); analyze_brand costs 600 points on success. Always quote prepare_space's estimatedPoints before collecting. Prepaid deducts a point balance; postpaid does not deduct a balance and is settled by billing-period usage, with the same unit prices.
 
-Errors: data not ready → diagnose_brand / refresh_brand first; out of quota → guide the user to top up (error carries links); unknown code → explain_error. Knowledge spaces don't support Amazon; for Amazon reviews use setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts. Brand data is per-user isolated.`,
+Errors: data not ready → diagnose_brand / refresh_brand first; out of quota → check get_context.billingMode first: prepaid users should top up/upgrade, postpaid users should contact their account admin or Pangolinfo support to adjust the period cap; unknown code → explain_error. Knowledge spaces don't support Amazon; for Amazon reviews use setup_brand + monitorPlatforms:['amazon_reviews'] + amazonProducts. Brand data is per-user isolated.`,
 });
 
 function buildServer(ctx: ToolContext): Server {

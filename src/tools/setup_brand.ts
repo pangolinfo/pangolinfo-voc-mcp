@@ -89,7 +89,8 @@ export const setupBrand: Tool<typeof inputSchema> = {
     zh: `[接入新品牌 · 扣费] 创建一个要监测的品牌,并立即触发首轮社媒采集。
 这是**完整品牌**接入(含竞品/官网/定时),是显式高级用法;想快速看某品牌讨论用 create_space(知识空间)更轻。
 Amazon Reviews:只有用户明确要 Amazon 评论且能提供 ASIN 或 Amazon 商品链接时,才传 monitorPlatforms:['amazon_reviews'] + amazonProducts[{asin 或 url}]。
-同步:立刻创建品牌并返回 brandId。异步:同时启动一个首采任务,其 jobId 也在返回里 —— 用 get_refresh_progress(jobId) 轮询首采进度,完成后才有数据可读/可分析。
+同步:立刻创建品牌并返回 brandId。异步:同时启动一个首采任务(异步长任务,通常 15–45 分钟,~90% 在 3 小时内完成),其 jobId 也在返回里。
+⚠️ 采集等待纪律:**不要**写外部轮询脚本、**不要**建 host 侧定时/一次性自动化去等(都不可靠)。正确姿势:把预计耗时告诉用户,本轮先结束或做别的只读事,引导用户下次回来发一句「查进度」时再用 get_refresh_progress(jobId) 查;想同一轮稍等片刻才用 wait_for_refresh(≤20s,超时即还控制权,别循环)。完成后才有数据可读/可分析。
 扣费:采集受理成功后按 estimatedPoints 预估记账。
 建议:建品牌前先用 prepare_brand_onboarding(品牌名)拿到关键词/平台/竞品建议,再带进来(免费)。
 Returns: { brandId, jobId, ... }。
@@ -98,7 +99,8 @@ Don't use: 品牌已存在(用 list_brands 找,update_brand 改配置)。`,
     en: `[Onboard a brand · CHARGED] Create a brand to monitor and immediately trigger first-round collection.
 This is **full brand** onboarding (competitors/website/scheduling) — an explicit advanced path; to quickly see discussion about a brand, create_space (knowledge space) is lighter.
 Amazon Reviews: only include monitorPlatforms:['amazon_reviews'] + amazonProducts[{asin or url}] when the user explicitly wants Amazon reviews and can provide ASINs or Amazon product URLs.
-Sync: creates the brand and returns brandId right away. Async: also starts a first-collection job whose jobId is in the response — poll it with get_refresh_progress(jobId); data is readable/analyzable once it finishes.
+Sync: creates the brand and returns brandId right away. Async: also starts a first-collection job (long async job, usually 15–45 min, ~90% within 3h) whose jobId is in the response.
+⚠️ Collection wait discipline: do NOT write an external polling script, do NOT create a host-side scheduled/one-shot automation to wait (both unreliable). Correct pattern: tell the user the ETA, end this turn or do other read-only work, guide the user to come back and say "check progress" — then call get_refresh_progress(jobId). To wait a moment within the same turn, use wait_for_refresh (≤20s, hands control back on timeout — no loop). Data is readable/analyzable once it finishes.
 Charge: recorded by estimatedPoints after collection acceptance.
 Tip: call prepare_brand_onboarding(name) first for keyword/platform/competitor suggestions (free), then pass them here.
 Returns: { brandId, jobId, ... }.

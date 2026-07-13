@@ -43,11 +43,11 @@ export const waitForRefresh: Tool<typeof inputSchema> = {
     zh: `[短等采集完成 · 免费] 短暂等待一个采集作业完成,超时即返回当前进度(不会一直阻塞)。
 配合 create_space/refresh_brand 的 jobId 用。不扣费。
 Returns: 同 get_refresh_progress(status/progress/billingIntent...)。
-Use when: 想稍等一下看采集完没完,但不想无限等。注意:仍可能返回 processing(没等到完成),此时继续用 get_refresh_progress 轮询。`,
+Use when: 想在**同一轮对话里**稍等片刻看采集完没完,但不想无限等。注意:采集是 15–45 分钟长任务,单次 wait 大概率仍返回 processing —— **超时就告诉用户还要等(通常 15–45 分钟)、结束本轮,不要 while 循环反复 wait、更不要写脚本/定时器代等**;让用户下次回来说「查进度」时再用 get_refresh_progress 查。`,
     en: `[Short-wait for collection · FREE] Briefly wait for a collection job to finish; returns current progress on timeout (never blocks forever).
 Use with the jobId from create_space/refresh_brand. No charge.
 Returns: same as get_refresh_progress (status/progress/billingIntent...).
-Use when: you want to wait a bit to see if collection finished, without waiting forever. Note: may still return 'processing' (not done) — keep polling with get_refresh_progress then.`,
+Use when: you want to wait a bit **within the same turn** to see if collection finished, without waiting forever. Note: collection is a 15–45 min long job, so a single wait will most likely still return 'processing' — on timeout, tell the user it still needs time (usually 15–45 min) and end the turn; do NOT while-loop wait, and do NOT write a script/timer to wait on your behalf. Let the user come back and say "check progress" to poll get_refresh_progress then.`,
   }),
   inputSchema,
   async execute(input, ctx) {

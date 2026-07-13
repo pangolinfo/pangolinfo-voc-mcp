@@ -29,14 +29,14 @@ export const getRefreshProgress: Tool<typeof inputSchema> = {
 配合 create_space / refresh_brand / setup_brand 使用:它们返回采集 jobId,这里轮询直到 status 终态。
 Returns: { status, progress, phase, platform, postsCollected, postsAnalyzed }。
 status ∈ processing(进行中) | completed(完成) | partial(部分完成) | failed(失败)。
-轮询建议:间隔几十秒查一次,不要高频空转。status=completed/partial 后再去取数据/读分析结果。
+轮询建议:采集是 15–45 分钟的长任务,**不要在一轮对话里 while 循环反复查、也不要写脚本/定时器代查**。查一次若仍 processing,就告诉用户还要等(采集通常 15–45 分钟)、结束本轮,让用户下次回来说「查进度」时再查。status=completed/partial 后再去取数据/读分析结果。
 Use when: 发起了 create_space/refresh/setup 后,等采集跑完。
 Don't use: 没有 jobId 时。`,
     en: `[Check progress · FREE] Poll an async collection job (space first-collection / refresh / brand first-collection). Free, poll as needed.
 Pairs with create_space / refresh_brand / setup_brand: they return a collection jobId; poll here until a terminal status.
 Returns: { status, progress, phase, platform, postsCollected, postsAnalyzed }.
 status ∈ processing | completed | partial | failed.
-Polling: every tens of seconds, don't spin. Once completed/partial, fetch data / read the analysis result.
+Polling: collection is a 15–45 min long job — do NOT while-loop it within one turn, and do NOT write a script/timer to poll on your behalf. If one check is still 'processing', tell the user it still needs time (collection usually takes 15–45 min) and end the turn; let the user come back and say "check progress" to poll again. Once completed/partial, fetch data / read the analysis result.
 Use when: after starting create_space/refresh/setup, wait for collection to finish.
 Don't use: when you have no jobId.`,
   }),

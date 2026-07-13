@@ -49,8 +49,8 @@ export const refreshBrand: Tool<typeof inputSchema> = {
   name: "refresh_brand",
   description: t({
     zh: `[发起采集 · 扣费 · 异步] 立即为某品牌发起一次社媒数据采集。
-⚠️ 异步:本工具只返回作业句柄 jobId,**不会等采集完成**(采集约 90% 在 3 小时内完成)。
-拿到 jobId 后,请用 get_refresh_progress(jobId) 轮询进度,**不要原地干等、不要重复发起**。
+⚠️ 异步:本工具只返回作业句柄 jobId,**不会等采集完成**(采集是异步长任务,通常 15–45 分钟,约 90% 在 3 小时内完成)。
+拿到 jobId 后:**不要**写外部轮询脚本(网络抖动会中断)、**不要**建 host 侧定时/一次性自动化去等(不可靠、常静默不触发)、不要原地干等、不要重复发起。正确姿势:告诉用户预计 15–45 分钟,本轮先结束或做别的只读事,引导用户下次回来发一句「查进度」时再用 get_refresh_progress(jobId) 查;想在同一轮稍等片刻才用 wait_for_refresh(≤20s,超时即还控制权,别 while 循环)。
 status 变为 completed/partial 后,再调读类工具(get_brand_metrics/search_brand_posts/...)或 analyze_brand,此时数据才是新的。
 扣费:采集受理成功后按 estimatedPoints 预估记账(响应里 billing.estimatedPoints 是预估)。
 在途去重:若该品牌已有采集在跑,不会重复发起(也不会重复扣费),而是复用/返回那个在途 jobId —— 直接用 get_refresh_progress 轮询它,等完成再按需重试。
@@ -60,8 +60,8 @@ Returns: { jobId, queuePosition, etaMinutes, billing{estimatedPoints} }。
 Use when: 用户要"刷新/更新某品牌的最新社媒数据"。
 Don't use: 只想看已有数据(直接用读类工具,免费);查进度(用 get_refresh_progress)。`,
     en: `[Start collection · CHARGED · async] Immediately start a social-media data collection for a brand.
-⚠️ Async: returns only a job handle (jobId) and does NOT wait for completion (~90% finish within 3h).
-After getting jobId, poll with get_refresh_progress(jobId). Do NOT busy-wait or re-trigger.
+⚠️ Async: returns only a job handle (jobId) and does NOT wait for completion (long async job, usually 15–45 min, ~90% finish within 3h).
+After getting jobId: do NOT write an external polling script (a network blip kills it), do NOT create a host-side scheduled/one-shot automation to wait (unreliable, often silently never fires), do NOT busy-wait or re-trigger. Correct pattern: tell the user it takes ~15–45 min, end this turn or do other read-only work, and guide the user to come back and say "check progress" — then call get_refresh_progress(jobId). To wait a moment within the same turn, use wait_for_refresh (≤20s, hands control back on timeout — no while loop).
 Once status is completed/partial, call read tools (get_brand_metrics/search_brand_posts/...) or analyze_brand — data is fresh then.
 Charge: recorded by estimatedPoints after collection acceptance (billing.estimatedPoints in the response is an estimate).
 In-flight dedup: if a collection is already running for this brand, it will NOT start (or charge for) a second one — it reuses/returns that in-flight jobId. Poll it with get_refresh_progress and retry after it finishes.
