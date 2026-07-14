@@ -84,15 +84,16 @@ const SERVER_INSTRUCTIONS = t({
 
 产出 VOC 报告(重要):目标是让客户觉得"积点花得值"——尽量用你能拿到的真实数据,产出一份详尽、可追溯、对决策有用的报告。**报告的排版/结构/章节由你自己决定**(这里不规定固定模板),但请遵守下面的原则:
 【先问需求再动手】需求宽泛(如"出份 VOC 报告")时,先用一两个问题确认用户到底关心什么再产出:时间窗多长?重点看哪些平台?是要监控风险、还是找增长机会、还是竞品对比?针对什么决策(投放/产品/公关)?贴着用户目的的报告,比面面俱到的通用报告更让人觉得值。
+【默认流程:优先官方 AI 分析(analyze_brand),但先向用户确认再扣费】出 VOC 报告默认走 analyze_brand —— DataScaler 官方 AI 一次性产出结构完整、成品感强的分析报告(整体口碑/正负面/平台/风险/建议)。**⚠️ analyze_brand 扣费 600 积分,调它前必须先向用户说明"这会花约 600 积分调官方 AI 出一份完整报告"并得到用户明确同意,不要擅自调用替用户扣费**(与建空间前确认同理)。前置:品牌需已采集完成(dataReady);若 data not ready / refresh in progress,先 refresh + get_refresh_progress 等完成。
+【用免费只读工具补强官方报告】拿到 analyze_brand 的报告后,可以(推荐)再用下面这些**免费只读**工具补强,让报告更可追溯、更有说服力:补真实用户原话引文、补分平台明细、补 72h 高风险评论样本、补图表。免费工具不扣费,能补的都补上,并在报告里标明每块补充数据来自哪个工具:
 【铁律·数据不准编】报告里每一个数字、关键词次数、评论原文、互动数,都必须是工具真实返回的原样值——**严禁编造、估算、四舍五入补全或脑补**。工具没返回的字段就明确写"未返回/不可用",不要填一个看起来合理的值。缺失项如实标注,比编一个假数字可信得多。
-【尽量拉全 + 标注数据源】别只用一两个工具就下结论。这些免费只读工具各自能给你不同维度,能拉的都拉上,并在报告里标明每块数据来自哪个工具(客户能看到积点花在哪):
   · get_brand_metrics —— 总帖子/提及/触达/互动;分平台指标;正/负面驱动词 TOP(带次数);分平台情感。
   · get_brand_sentiment —— 整体与分平台正/中/负占比及条数。
   · get_risk_alerts —— 高风险负面评论原文(带情感分/置信度/作者/所属帖子标题/平台/链接)、风险关键词聚类、平台负面尖峰。(注:此工具窗口通常是 72h,与报告的天数口径可能不同,如实标注。)
   · find_posts_about / search_brand_posts —— 真实用户帖子/评论原文(含作者、平台、真实点赞/播放/触达数),既做正面样本也做负面样本。
   · get_voice_share —— 竞品声量份额(仅在配置了竞品时有值;competitors 为空则标"未配置竞品/不可用")。
   · get_brand_summary —— DataScaler 侧的 AI 摘要与建议,可作叙事骨架。
-【善用时间趋势】get_voice_share 返回的是**每日 trend 数组**(每天的帖子/提及/声量份额/情感)——别只看静态快照,用它呈现声量与情感随时间的变化,并做简单环比(如"上市/首周 vs 近一周"),趋势比单点更有洞察。
+【用户不想花积分时的兜底】若用户不同意花 600 积分调 analyze_brand,别就此不做 —— 改用上面这些**免费只读**工具自己拉数据、自行撰写一份报告(指标+真实引文+叙事),同样能出可用的报告,只是叙事和结构由你组织。这条兜底路径完全免费。get_voice_share 返回的是**每日 trend 数组**(每天的帖子/提及/声量份额/情感)——别只看静态快照,用它呈现声量与情感随时间的变化,并做简单环比(如"上市/首周 vs 近一周"),趋势比单点更有洞察。
 【图表可视化】若产出 HTML 报告,尽量把关键数据画成图(可用内联 SVG,或引入 ECharts 这类库):分平台指标对比、正/负面驱动词 TOP 条形图、声量/情感 trend 折线。图 + 表 + 原话三者结合,远比纯文字表格直观、显得专业。图里的数值同样必须是真实返回值。
 【每块数据配一句结论】每张表/图/一组数据后面,紧跟一句"所以呢"(so-what)的结论,把数字翻译成对决策有用的判断(如"YouTube 是口碑引擎、Reddit 是风险黑洞"),别让数据和结论分离、也别只堆数据不给解读。
 【关注客户想看什么】客户要的是能落地的结论:哪些平台是口碑引擎、哪些是风险黑洞;用户具体在夸什么/骂什么(配真实原话,而非孤零零的词频);有哪些紧急风险信号、附真实高风险评论;可放大的正面内容方向、可复用的高触达样本;分优先级的行动建议。指标是骨架,真实原话和可追溯来源是让报告可信、显得值的关键。
@@ -117,14 +118,16 @@ Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② d
 
 Producing a VOC report (important): the goal is to make the customer feel the points were well spent — use as much of the real data you can obtain to produce a thorough, traceable, decision-useful report. **You decide the report's layout/structure/sections (no fixed template is prescribed here)**, but follow these principles:
 [Clarify the need first] When the request is broad (e.g. "make a VOC report"), ask one or two questions to pin down what the user actually cares about before producing: how long a time window? which platforms matter most? monitoring risk vs finding growth opportunities vs competitor comparison? for what decision (ad spend / product / PR)? A report aligned to the user's purpose feels far more worth it than a generic all-in-one.
+[Default flow: prefer the official AI analysis (analyze_brand), but confirm the charge with the user first] By default, produce a VOC report via analyze_brand — DataScaler's official AI produces a complete, polished analysis in one shot (overall reputation / positives & negatives / platforms / risks / recommendations). **⚠️ analyze_brand costs 600 points; before calling it you MUST tell the user "this will spend ~600 points to have the official AI produce a full report" and get their explicit agreement — do not call it and spend on the user's behalf without confirmation** (same as confirming before creating a space). Precondition: the brand must have collected data (dataReady); if data not ready / refresh in progress, refresh + get_refresh_progress until done first.
 [Hard rule — never fabricate data] Every number, keyword count, comment quote, and engagement figure in the report MUST be the tool's real returned value, verbatim — **never invent, estimate, round-to-fill, or infer**. If a tool didn't return a field, explicitly write "not returned / unavailable"; do not fill in a plausible-looking value. Honestly flagging a gap is far more credible than a fabricated number.
-[Pull broadly + cite sources] Don't conclude from just one or two tools. These free read-only tools each give a different dimension — pull whatever you can and label which tool each block of data came from (so the customer sees where their points went):
+[Enrich the official report with free read-only tools] After getting analyze_brand's report, you can (recommended) enrich it with the free read-only tools below to make it more traceable and convincing: add real user quotes, per-platform detail, 72h high-risk comment samples, charts. Free tools don't charge — add what you can, and label which tool each added block came from:
   · get_brand_metrics — total posts/mentions/reach/engagement; per-platform metrics; positive/negative driver words TOP (with counts); per-platform sentiment.
   · get_brand_sentiment — overall and per-platform positive/neutral/negative % and counts.
   · get_risk_alerts — high-risk negative comment quotes (with sentiment score / confidence / author / source post title / platform / URL), risk-keyword clusters, per-platform negative spikes. (Note: this tool's window is usually 72h, which may differ from the report's day range — flag it honestly.)
   · find_posts_about / search_brand_posts — real user posts/comments verbatim (with author, platform, real likes/views/reach), for both positive and negative samples.
   · get_voice_share — competitor share of voice (only meaningful when competitors are configured; if competitors is empty, mark "no competitors configured / unavailable").
   · get_brand_summary — DataScaler's AI summary and recommendations, usable as a narrative skeleton.
+[Fallback when the user won't spend points] If the user declines the 600-point analyze_brand, don't just give up — use the free read-only tools above to pull data and write a usable report yourself (metrics + real quotes + narrative). This fallback path is completely free; only the narrative and structure are yours to organize.
 [Use time trends] get_voice_share returns a **daily trend array** (per-day posts/mentions/share-of-voice/sentiment) — don't just read a static snapshot; use it to show how volume and sentiment change over time, with simple period-over-period deltas (e.g. "launch/first week vs last week"). Trends are more insightful than single points.
 [Visualize with charts] If producing an HTML report, chart the key data where you can (inline SVG, or pull in a library like ECharts): per-platform metric comparison, positive/negative driver-word TOP bar charts, volume/sentiment trend lines. Charts + tables + quotes together read far more clearly and professionally than plain text tables. Values in charts must also be the real returned values.
 [Pair each data block with a takeaway] After each table/chart/data group, add one "so-what" line that translates the numbers into a decision-useful judgment (e.g. "YouTube is the word-of-mouth engine, Reddit is the risk black hole"). Don't separate data from conclusions, and don't dump data without interpretation.
