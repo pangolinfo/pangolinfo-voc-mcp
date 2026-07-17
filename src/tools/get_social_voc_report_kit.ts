@@ -74,6 +74,7 @@ export const getSocialVocReportKit: Tool<typeof inputSchema> = {
     zh: `[VOC 报告套件 · 免费 · 出报告默认首选] 一次拿到可装配的社媒 VOC 报告套件:reportSpec(模块清单)+ 各模块结构化数据与叙述 + 自包含 CSS + 装配提示。免费,不扣积分、不占 AI 额度。
 【交付铁律】拿到套件后**必须**把它装配成一份**完整 HTML 文档**(用 \`\`\`html 代码块 或 .html 文件产物)交给用户;**禁止**只用 Markdown 标题/表格充当完整报告。
 【怎么装配】把返回体的 delivery.instruction + assemblyHints.systemPromptFragment + style(cssSnippet/tokens/classMap)+ reportSpec + modules 一并交给你自己的模型,一次生成完整 HTML。modules 按 id 查找(overview/trends/voice/platforms),别写死数组下标;schemaVersion 用 startsWith('social-voc-report-kit.v1') 判断。
+【CSS 铁律】若把样式内联进 <style>,必须是浏览器可直接解析的**扁平 CSS**;**禁止**未编译的 Tailwind 嵌套 / @apply / 规则体里以 > ~ + 开头的嵌套块(如 .divide-y{>:not(...){...}})—— 这会让浏览器中断解析、丢掉后续规则,图表条塌成 0 高透明,报告看着"很简陋"。更稳的做法:引 Tailwind CDN(<script src="https://cdn.tailwindcss.com"></script>),或只用套件自带的 style.cssSnippet(--ds- 变量那套,已是扁平 CSS)。
 【不编造铁律】modules[].data 里没有的数字/关键词次数/引文一律不得编造;某模块 status 为 degraded/failed 时降级渲染已有 data 并展示其 error 提示。
 前置:品牌需已采集完成 —— 若报 data not ready / refresh in progress,先 refresh_brand 并用 get_refresh_progress 等完成再调。
 Returns: data = { schemaVersion, delivery, meta, reportSpec, style, assemblyHints, modules[] }。
@@ -82,6 +83,7 @@ Don't use: 只要单点指标(get_brand_metrics 等免费只读);想要额外的
     en: `[VOC report kit · FREE · default first choice for reports] Get an assemble-ready social VOC report kit in one call: reportSpec (module list) + per-module structured data & narrative + self-contained CSS + assembly hints. Free — no points, no AI quota.
 [Delivery hard rule] After getting the kit you MUST assemble it into a COMPLETE HTML document (a \`\`\`html code block or a .html file artifact) for the user; do NOT pass off Markdown headings/tables as the full report.
 [How to assemble] Hand your own model the returned delivery.instruction + assemblyHints.systemPromptFragment + style (cssSnippet/tokens/classMap) + reportSpec + modules together, and generate the full HTML in one shot. Look up modules by id (overview/trends/voice/platforms), do NOT hardcode array indices; gate on schemaVersion via startsWith('social-voc-report-kit.v1').
+[CSS hard rule] If you inline styles into <style>, they MUST be flat, browser-parseable CSS; do NOT emit uncompiled Tailwind nesting / @apply / nested blocks starting with > ~ + inside a rule body (e.g. .divide-y{>:not(...){...}}) — the browser aborts parsing at that point and drops all following rules, collapsing chart bars to 0-height transparent and making the report look "bare". Safer: pull in the Tailwind CDN (<script src="https://cdn.tailwindcss.com"></script>), or use only the kit's own style.cssSnippet (the --ds- variable set, already flat CSS).
 [No fabrication] Never invent numbers/keyword counts/quotes not present in modules[].data; when a module status is degraded/failed, render its existing data degraded and show its error note.
 Precondition: brand must have collected data — if 'data not ready' / 'refresh in progress', run refresh_brand and wait via get_refresh_progress first.
 Returns: data = { schemaVersion, delivery, meta, reportSpec, style, assemblyHints, modules[] }.
