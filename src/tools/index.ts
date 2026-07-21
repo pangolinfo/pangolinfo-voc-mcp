@@ -1,5 +1,5 @@
 /**
- * Pangolinfo DataScaler MCP - tool registry (品牌社媒洞察 · v0.3 知识空间版)。
+ * Pangolinfo VOC MCP - tool registry (品牌社媒洞察 · v0.3 知识空间版)。
  *
  * 共 26 个 tool = 25 业务工具 + 1 自省(social_capabilities)。
  * social_capabilities 放第一位 —— AI 首次接入建议先调(或 get_context 拿实时计费模式/品牌/平台)。
@@ -7,7 +7,7 @@
  * 默认接入走【知识空间】:prepare_space → create_space。setup_brand 是完整品牌(高级)。
  * 扣费工具:create_space / refresh_brand / setup_brand(采集,按 estimatedPoints) + analyze_brand(600 points)。
  * 其余全免费(含 prepare_space / get_brand_summary / get_social_voc_report_kit / 所有只读 / context / diagnose / wait / get_billing_rules)。
- * 注:get_usage 已移除(暴露 DataScaler 批发账户用量,白标不对外;用户用量到 pangolinfo.com 查)。
+ * 注:get_usage 已移除(暴露上游批发账户用量,白标不对外;用户用量到 pangolinfo.com 查)。
  *
  * 加新 tool:实现 <name>.ts → 在此 import → append 到数组。
  */

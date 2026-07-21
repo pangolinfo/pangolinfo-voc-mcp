@@ -2,7 +2,7 @@
  * Tool: get_brand_summary —— 品牌洞察摘要(免费,快速一段式)。
  *
  * 调 POST /api/v1/social/brands/{brandId}/summary,body 为除 brandId 外字段(可空对象)。
- * DataScaler 确认 summary **不扣费**:这是同步、快速的一段式总结,与 analyze_brand
+ * 上游确认 summary **不扣费**:这是同步、快速的一段式总结,与 analyze_brand
  * (扣费、同步、深度自由提问)区分。依赖品牌已有数据 —— 若报 data not ready,先 refresh_brand。
  */
 

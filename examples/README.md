@@ -1,21 +1,21 @@
 # examples — 端到端使用流程演示
 
-用真实 MCP 协议跑通 `pangolinfo-datascaler-mcp` 的完整使用流程，看真实社媒数据流过整条链。
+用真实 MCP 协议跑通 `pangolinfo-voc-mcp` 的完整使用流程，看真实社媒数据流过整条链。
 
 ## 这演示的是什么
 
 真实链路是三跳：
 
 ```
-AI 客户端 → MCP(本仓) → Java(crawler-ext-service /api/v1/social/*) → DataScaler
+AI 客户端 → MCP(本仓) → Pangolinfo 后端(/api/v1/social/*) → 上游数据供应商
 ```
 
 本目录用 `demo-client.mjs` 扮演 **AI 客户端**（走真实 MCP 协议），用 `mock-backend.mjs`
-扮演中间的 **Java 那一跳**（仅做最小转发，看数据流）。
+扮演中间的 **后端那一跳**（仅做最小转发，看数据流）。
 
-> ⚠️ `mock-backend.mjs` **不是生产代码**。真实 Java 还会做：校验 Pangolinfo API Key、
+> ⚠️ `mock-backend.mjs` **不是生产代码**。真实后端还会做：校验 Pangolinfo API Key、
 > 从已认证会话取 userId、扣费（受理即扣、按操作差异化定价）、错误码映射。
-> mock 只注入 DataScaler token + 一个演示用 externalUserId 后透传。
+> mock 只注入上游 token + 一个演示用 externalUserId 后透传。
 
 ## 演示覆盖的流程
 
@@ -29,17 +29,17 @@ AI 客户端 → MCP(本仓) → Java(crawler-ext-service /api/v1/social/*) → 
 ## 前置
 
 1. 已 `npm install && npm run build`（生成 `dist/server.mjs`）。
-2. 有一套 DataScaler 凭证（staging 或生产）。
+2. 有一套上游数据供应商凭证（staging 或生产）。
 
 ## 怎么跑
 
-**第 1 步：设置 DataScaler 凭证（从环境变量读，不写进文件）**
+**第 1 步：设置上游凭证（从环境变量读，不写进文件）**
 
 ```bash
-export DATASCALER_TOKEN_ENDPOINT="https://staging.datascaler.ai/oauth/token"
-export DATASCALER_API_BASE="https://staging.datascaler.ai/partner/v1"
-export DATASCALER_CLIENT_ID="<你的 client_id>"
-export DATASCALER_CLIENT_SECRET="<你的 client_secret>"
+export UPSTREAM_TOKEN_ENDPOINT="https://<upstream-provider>/oauth/token"
+export UPSTREAM_API_BASE="https://<upstream-provider>/partner/v1"
+export UPSTREAM_CLIENT_ID="<你的 client_id>"
+export UPSTREAM_CLIENT_SECRET="<你的 client_secret>"
 # 可选
 export DEMO_EXTERNAL_USER_ID="u_demo"   # 演示用的终端用户 ID
 export MOCK_PORT=8787                    # mock 后端端口
@@ -48,10 +48,10 @@ export MOCK_PORT=8787                    # mock 后端端口
 PowerShell：
 
 ```powershell
-$env:DATASCALER_TOKEN_ENDPOINT="https://staging.datascaler.ai/oauth/token"
-$env:DATASCALER_API_BASE="https://staging.datascaler.ai/partner/v1"
-$env:DATASCALER_CLIENT_ID="<你的 client_id>"
-$env:DATASCALER_CLIENT_SECRET="<你的 client_secret>"
+$env:UPSTREAM_TOKEN_ENDPOINT="https://<upstream-provider>/oauth/token"
+$env:UPSTREAM_API_BASE="https://<upstream-provider>/partner/v1"
+$env:UPSTREAM_CLIENT_ID="<你的 client_id>"
+$env:UPSTREAM_CLIENT_SECRET="<你的 client_secret>"
 ```
 
 **第 2 步：启动 mock 后端（一个终端）**
@@ -71,7 +71,7 @@ node examples/demo-client.mjs
 ## 预期输出（节选）
 
 ```
-✅ 握手成功。Server: pangolinfo-datascaler-mcp v0.1.0
+✅ 握手成功。Server: pangolinfo-voc-mcp v0.1.0
 ✅ 发现 17 个工具
 
 ━━━ ② 列出我的品牌(数据隔离) ━━━

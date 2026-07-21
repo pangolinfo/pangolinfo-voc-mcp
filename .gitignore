@@ -6,9 +6,14 @@ dist/
 .DS_Store
 
 # 部署脚本: 含真实 ACR 密码的 .sh 不进仓库; 模板 .example 进.
-# 跟 pangolinfo-mcp / ext-scrapeapi 同样的结构 (scripts/window/).
 scripts/window/docker-mcp.sh
 !scripts/window/docker-mcp.sh.example
+
+# 内部调查/设计文档: 含上游供应商契约、staging/生产地址、供应商源码路径等内部信息,
+# 不进公开仓库,仅本地保留。
+docs/specs/
+docs/upstream-v1.1-noncompliance-report-2026-07-08.md
+docs/v03-staging-probe-findings.md
 
 # 本地用的 ACK YAML 粘贴模板 (含 redeploy-timestamp 等频繁变的字段)
 deploy/k8s-deployment-aliyun-paste.yaml

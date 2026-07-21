@@ -1,5 +1,5 @@
 /**
- * Pangolinfo DataScaler MCP - 共享 query-string 构造工具。
+ * Pangolinfo VOC MCP - 共享 query-string 构造工具。
  *
  * 各只读工具的过滤/分页参数透传给后端时,统一用这里拼 query string,
  * 避免每个工具各写一份 buildQuery(原先 8 处重复)。

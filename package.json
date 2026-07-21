@@ -1,17 +1,17 @@
 {
-  "name": "pangolinfo-datascaler-mcp",
+  "name": "pangolinfo-voc-mcp",
   "version": "0.4.2",
-  "description": "Pangolinfo DataScaler MCP server - white-label brand social-media insight tools (brands, refresh, posts, sentiment, voice-share, competitors, risk-alerts, analyze) for AI assistants via Model Context Protocol.",
+  "description": "Pangolinfo VOC MCP server - white-label brand social-media insight tools (brands, refresh, posts, sentiment, voice-share, competitors, risk-alerts, analyze) for AI assistants via Model Context Protocol.",
   "type": "module",
   "license": "MIT",
   "author": "Pangolinfo <support@pangolinfo.com>",
   "homepage": "https://www.pangolinfo.com/?sourceTag=mcp_",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pangolinfo/pangolinfo-datascaler-mcp.git"
+    "url": "git+https://github.com/pangolinfo/pangolinfo-voc-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/pangolinfo/pangolinfo-datascaler-mcp/issues"
+    "url": "https://github.com/pangolinfo/pangolinfo-voc-mcp/issues"
   },
   "keywords": [
     "mcp",
@@ -19,11 +19,10 @@
     "social-media",
     "brand-insight",
     "ai-tools",
-    "claude",
-    "datascaler"
+    "claude"
   ],
   "bin": {
-    "pangolinfo-datascaler-mcp": "./dist/server.mjs"
+    "pangolinfo-voc-mcp": "./dist/server.mjs"
   },
   "main": "./dist/server.mjs",
   "files": [

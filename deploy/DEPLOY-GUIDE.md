@@ -1,7 +1,7 @@
-# DataScaler VOC MCP v0.4.1 — 阿里云 ACK 部署手册
+# Pangolinfo VOC MCP v0.4.1 — 阿里云 ACK 部署手册
 
 > 部署目标: 让 MCP 客户端通过 `https://voc.pangolinfo.com/mcp?api_key=pgl_xxx` 直接连云端 MCP server,无需安装任何东西。
-> 架构: AI 客户端 → 本 MCP(纯转发)→ Java scrapeapi(crawler-ext-service, 扣费在此)→ DataScaler Partner API。
+> 架构: AI 客户端 → 本 MCP(纯转发)→ Pangolinfo 后端(扣费在此)→ 上游数据供应商 API。
 
 ---
 
@@ -10,25 +10,25 @@
 | 项 | 值 |
 |---|---|
 | ACK 集群 | `crawler` @ ap-southeast-1 (新加坡), default namespace |
-| 镜像仓库 | `registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/datascaler-voc` |
+| 镜像仓库 | `registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/voc-mcp` |
 | 镜像 tag | `0.4.1`,`latest` |
 | 容器端口 | 3000 (HTTP) |
 | 探针路径 | `GET /health` |
 | MCP 协议端点 | `POST /mcp` |
 | 对外方式 | `type: LoadBalancer` Service → ACK 自动建**独立 SLB**(不与 pangolinfo-mcp 共用) |
 | 对外域名 | `voc.pangolinfo.com` |
-| 证书 | 复用 `*.pangolinfo.com` 自签证书 cert-id(SAN 已含,见 memory / `D:/larkDownload/mcp-cert`) |
+| 证书 | 复用 `*.pangolinfo.com` 自签证书 cert-id(SAN 已含,见内部运维记录) |
 | 转发后端 | `PANGOLINFO_SCRAPE_BASE=https://scrapeapi.pangolinfo.com` |
 
 > 参考: pangolinfo-mcp 是同集群同款 LoadBalancer 直挂 SLB(External IP 47.237.210.136);
-> datascaler-voc 照同款做,ACK 会自动再建一个**新 SLB**(新公网 IP)。
+> voc-mcp 照同款做,ACK 会自动再建一个**新 SLB**(新公网 IP)。
 
 ---
 
 ## Step 0: 前置(第一次部署做一次)
 
 ```bash
-# 在 pangolinfo-datascaler-mcp 根目录:
+# 在 pangolinfo-voc-mcp 根目录:
 cp scripts/window/docker-mcp.sh.example scripts/window/docker-mcp.sh
 # 编辑 scripts/window/docker-mcp.sh 填真实 ACR 用户名/密码(跟 pangolinfo-mcp / scrapeapi 同一套)
 ```
@@ -38,7 +38,7 @@ cp scripts/window/docker-mcp.sh.example scripts/window/docker-mcp.sh
 ## Step 1: build + 推镜像(WSL 内,一行命令)
 
 ```cmd
-cd D:\newCode\pangolinfo-datascaler-mcp
+cd D:\newCode\pangolinfo-voc-mcp
 scripts\window\deploy-mcp.cmd 0.4.1
 ```
 
@@ -52,16 +52,16 @@ scripts\window\deploy-mcp.cmd 0.4.1
 
 1. ACK 控制台 → `crawler` 集群 → **工作负载 → 无状态** → **使用 YAML 创建**
 2. 把 `deploy/k8s-deployment.yaml` 整个文件贴进去 → **创建**
-3. 看到 `datascaler-voc` 2 个 Pod Running
+3. 看到 `voc-mcp` 2 个 Pod Running
 
-**验证 Pod 日志**(工作负载 → 无状态 → datascaler-voc → 任一 Pod → 日志)应看到:
+**验证 Pod 日志**(工作负载 → 无状态 → voc-mcp → 任一 Pod → 日志)应看到:
 ```
-[pangolinfo-datascaler-mcp] locale=en version=0.4.1
-[pangolinfo-datascaler-mcp] transport=http
-[pangolinfo-datascaler-mcp] http server listening on :3000; endpoint=/mcp health=/health; 25 tool(s) registered
+[pangolinfo-voc-mcp] locale=en version=0.4.1
+[pangolinfo-voc-mcp] transport=http
+[pangolinfo-voc-mcp] http server listening on :3000; endpoint=/mcp health=/health; 25 tool(s) registered
 ```
 
-**拿新 SLB 的公网 IP**:ACK 控制台 → **网络 → 服务** → 找 `datascaler-voc`(type=LoadBalancer)→ **外部 IP 地址(External IP)** 那一列,记下这个 IP(下一步 DNS 用)。SLB 由 ACK 自动创建管理,几十秒内出 IP。
+**拿新 SLB 的公网 IP**:ACK 控制台 → **网络 → 服务** → 找 `voc-mcp`(type=LoadBalancer)→ **外部 IP 地址(External IP)** 那一列,记下这个 IP(下一步 DNS 用)。SLB 由 ACK 自动创建管理,几十秒内出 IP。
 
 ---
 
@@ -111,12 +111,12 @@ MCP server URL: https://voc.pangolinfo.com/mcp?api_key=pgl_xxx
 
 **Step 1** — build + 推新 tag:
 ```cmd
-cd D:\newCode\pangolinfo-datascaler-mcp
+cd D:\newCode\pangolinfo-voc-mcp
 scripts\window\deploy-mcp.cmd 0.2.1
 ```
 
 **Step 2** — ACK 控制台触发滚动更新:
-`crawler` 集群 → 工作负载 → 无状态 → `datascaler-voc` → **升级** → image tag 改成 `0.2.1` → **提交**。
+`crawler` 集群 → 工作负载 → 无状态 → `voc-mcp` → **升级** → image tag 改成 `0.2.1` → **提交**。
 2 副本一个一个滚,零停机。
 
 ---
@@ -135,5 +135,5 @@ scripts\window\deploy-mcp.cmd 0.2.1
 
 ## 已知约束
 
-- **analyze 超时**: 经 Cloudflare(~100s 524)+ Java WebClient(115s),analyze 实际上限 ~100s,MCP deadline 配 110s。别把慢请求设成 180s。详见 memory `reference_datascaler_analyze_timeout_chain`。
-- **staging 凭证只在 Java 私有仓**: 本 public MCP 仓不含任何 DataScaler 密钥;扣费/凭证全在 crawler-ext-service 的 application-dev.yml。
+- **analyze 超时**: 经 Cloudflare(~100s 524)+ Java WebClient(115s),analyze 实际上限 ~100s,MCP deadline 配 110s。别把慢请求设成 180s。详见内部运维记录。
+- **凭证只在后端私有仓**: 本 public MCP 仓不含任何上游密钥;扣费/凭证全在 Pangolinfo 后端私有仓库。

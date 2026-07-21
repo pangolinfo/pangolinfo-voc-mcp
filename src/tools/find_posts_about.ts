@@ -74,7 +74,7 @@ function isRecord(value: unknown): value is RecordLike {
 }
 
 /**
- * DataScaler semantic search returns `items[]`; our earlier MCP text said
+ * The upstream semantic search returns `items[]`; our earlier MCP text said
  * `posts[]`. Keep the upstream field and add a compatibility alias so agents
  * following either shape can read the result.
  */

@@ -2,7 +2,7 @@
 setlocal
 
 REM ============================================================
-REM DataScaler VOC MCP - build + push to Aliyun ACR
+REM Pangolinfo VOC MCP - build + push to Aliyun ACR
 REM
 REM Usage:
 REM   deploy-mcp.cmd            (tag = latest)
@@ -21,7 +21,7 @@ cd /d "%~dp0\..\.."
 set "TAG=%~1"
 if "%TAG%"=="" set "TAG=latest"
 
-echo === Building and pushing datascaler-voc:%TAG% ===
+echo === Building and pushing voc-mcp:%TAG% ===
 echo (full build runs inside the Docker image, via WSL)
 echo.
 
@@ -35,11 +35,11 @@ wsl ./scripts/window/docker-mcp.sh %TAG% || (
 echo.
 echo ============================================================
 echo Done. Image pushed:
-echo   registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/datascaler-voc:%TAG%
-echo   registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/datascaler-voc:latest
+echo   registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/voc-mcp:%TAG%
+echo   registry-intl.ap-southeast-1.aliyuncs.com/pangolinfo-prod/voc-mcp:latest
 echo.
 echo Next step: trigger rolling update in ACK console
-echo   crawler cluster -^> Workloads -^> Deployments -^> datascaler-voc
+echo   crawler cluster -^> Workloads -^> Deployments -^> voc-mcp
 echo   -^> Update -^> change image tag to %TAG% -^> Submit
 echo   2 replicas roll one at a time, zero downtime.
 echo ============================================================

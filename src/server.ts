@@ -1,5 +1,5 @@
 /**
- * Pangolinfo DataScaler MCP - server entry point.
+ * Pangolinfo VOC MCP - server entry point.
  *
  * Two transports supported, selected by argv / env:
  *
@@ -11,7 +11,7 @@
  *      multi-tenant. Process stays up, accepts POST /mcp with the
  *      caller's API key in the URL query string (`?api_key=pgl_xxx`)
  *      or the `Authorization: Bearer pgl_xxx` header. Each request
- *      builds its own DataScalerClient + Server instance so two users
+ *      builds its own UpstreamClient + Server instance so two users
  *      never share auth state.
  *
  * In both modes, tool registration is identical — `buildServer(ctx)`
@@ -39,7 +39,7 @@ import { z, ZodError } from "zod";
 // makes the ordering explicit. See CONTRACT-i18n.md §2.2.
 import { getLocale, t } from "./i18n.js";
 import { loadAuth } from "./auth.js";
-import { DataScalerClient } from "./client.js";
+import { UpstreamClient } from "./client.js";
 import { CONFIG } from "./config.js";
 import { PangolinfoError, hintFor } from "./errors.js";
 import { tools } from "./tools/index.js";
@@ -49,11 +49,11 @@ import { SERVER_VERSION } from "./version.js";
 /** Logger that writes to stderr — stdout is reserved for the stdio MCP protocol. */
 const logger: ToolLogger = {
   info(msg) {
-    process.stderr.write(`[pangolinfo-datascaler-mcp] ${msg}\n`);
+    process.stderr.write(`[pangolinfo-voc-mcp] ${msg}\n`);
   },
   error(msg, err) {
     const suffix = err ? `: ${err.stack ?? err.message}` : "";
-    process.stderr.write(`[pangolinfo-datascaler-mcp][error] ${msg}${suffix}\n`);
+    process.stderr.write(`[pangolinfo-voc-mcp][error] ${msg}${suffix}\n`);
   },
 };
 
@@ -85,7 +85,7 @@ const SERVER_INSTRUCTIONS = t({
 产出 VOC 报告(重要):目标是让客户觉得"积点花得值"——尽量用你能拿到的真实数据,产出一份详尽、可追溯、对决策有用的报告。**报告的排版/结构/章节由你自己决定**(这里不规定固定模板),但请遵守下面的原则:
 【先问需求再动手】需求宽泛(如"出份 VOC 报告")时,先用一两个问题确认用户到底关心什么再产出:时间窗多长?重点看哪些平台?是要监控风险、还是找增长机会、还是竞品对比?针对什么决策(投放/产品/公关)?贴着用户目的的报告,比面面俱到的通用报告更让人觉得值。
 【给用户挑明三条报告路径,默认推荐 C(免费官方套件)】确认需求后,出报告前**主动把三条路简要摆给用户,并明确推荐 C**,由用户选:
-  · **路径 C(推荐 · 免费)= get_social_voc_report_kit**:DataScaler 官方一次返回可装配的报告套件(模块清单+各模块真实数据与叙述+自包含 CSS+装配提示),**免费**(不扣积分、不占 AI 额度),你据此装配成完整 HTML。成品质量高、零花费,绝大多数场景选它。
+  · **路径 C(推荐 · 免费)= get_social_voc_report_kit**:上游官方一次返回可装配的报告套件(模块清单+各模块真实数据与叙述+自包含 CSS+装配提示),**免费**(不扣积分、不占 AI 额度),你据此装配成完整 HTML。成品质量高、零花费,绝大多数场景选它。
   · **路径 A(深度分析 · 扣 600 积分)= analyze_brand**:想要额外的自由提问式深度策略结论(如"帮我做 KOC 选号""这波公关该怎么回应")时用,官方 AI 做一次深度分析。**报价必须写清:这条会花约 600 积分**。用户看到成本后主动选了 A,即视为同意扣费,直接调即可、不必再二次确认;但绝不在用户没看到"600 积分"报价的情况下就替他走 A。
   · **路径 B(纯自产 · 免费)= 免费只读工具自己拉数据撰写**:用户想要完全定制的结构/口吻,或 C 不可用时。你用下面的免费只读工具拉数据、自行组织成报告。
   用户没特别偏好时,默认按 C 走。选定 C 或用到 C 补强时:拿到套件后**必须**按其 delivery.instruction + assemblyHints.systemPromptFragment + style(cssSnippet/tokens/classMap)+ modules 装配成一份**完整 HTML 文档**,**禁止**只用 Markdown 表格充当完整报告。modules 按 id 查找(overview/trends/voice/platforms),schemaVersion 用 startsWith('social-voc-report-kit.v1') 判断;某模块 degraded/failed 时降级渲染已有 data。前置:品牌需已采集完成;若 data not ready / refresh in progress,先 refresh + get_refresh_progress 等完成。C 免费,不要引导用户为报告本身充值。
@@ -96,7 +96,7 @@ const SERVER_INSTRUCTIONS = t({
   · get_risk_alerts —— 高风险负面评论原文(带情感分/置信度/作者/所属帖子标题/平台/链接)、风险关键词聚类、平台负面尖峰。(注:此工具窗口通常是 72h,与报告的天数口径可能不同,如实标注。)
   · find_posts_about / search_brand_posts —— 真实用户帖子/评论原文(含作者、平台、真实点赞/播放/触达数),既做正面样本也做负面样本。
   · get_voice_share —— 竞品声量份额(仅在配置了竞品时有值;competitors 为空则标"未配置竞品/不可用")。
-  · get_brand_summary —— DataScaler 侧的 AI 摘要与建议,可作叙事骨架。
+  · get_brand_summary —— 上游侧的 AI 摘要与建议,可作叙事骨架。
 【路径 B 怎么做(纯自产)】用户选了路径 B(想完全定制),或 C 不可用(上游暂未部署/报错)时:用上面这些**免费只读**工具自己拉数据、自行撰写一份报告(指标+真实引文+叙事),叙事和结构由你组织,完全免费。get_voice_share 返回的是**每日 trend 数组**(每天的帖子/提及/声量份额/情感)——别只看静态快照,用它呈现声量与情感随时间的变化,并做简单环比(如"上市/首周 vs 近一周"),趋势比单点更有洞察。
 【图表可视化】若产出 HTML 报告,尽量把关键数据画成图(可用内联 SVG,或引入 ECharts 这类库):分平台指标对比、正/负面驱动词 TOP 条形图、声量/情感 trend 折线。图 + 表 + 原话三者结合,远比纯文字表格直观、显得专业。图里的数值同样必须是真实返回值。
 【图表别塌成文字·CSS 铁律】常见翻车:图表条只靠 class 名给高度/底色,而内联 <style> 里混进了未编译的 Tailwind 嵌套(如 .divide-y{>:not(...){...}})—— 浏览器解析到非法嵌套会中断、丢掉其后所有规则,于是横条/情感条全塌成 0 高透明,报告看着只剩纯文字、"很简陋"。两条护栏:① 每根横条/堆叠段的 inline style 里同时写死 width + height(如 height:28px)+ background(如 background:#3b82f6),别只靠 class,这样某个工具类没生效条也不塌;② 内联 CSS 必须是扁平、浏览器可直接解析的 CSS,禁止未编译 Tailwind 嵌套 / @apply,要用 Tailwind 就走 CDN、别手工内联半成品。产出后自查一遍:图表条是否真有高度、有底色可见,而非只有文字。
@@ -124,7 +124,7 @@ Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② d
 Producing a VOC report (important): the goal is to make the customer feel the points were well spent — use as much of the real data you can obtain to produce a thorough, traceable, decision-useful report. **You decide the report's layout/structure/sections (no fixed template is prescribed here)**, but follow these principles:
 [Clarify the need first] When the request is broad (e.g. "make a VOC report"), ask one or two questions to pin down what the user actually cares about before producing: how long a time window? which platforms matter most? monitoring risk vs finding growth opportunities vs competitor comparison? for what decision (ad spend / product / PR)? A report aligned to the user's purpose feels far more worth it than a generic all-in-one.
 [Lay out the three report paths for the user, default-recommend C (free official kit)] After clarifying the need, before producing the report **briefly present the three paths and clearly recommend C**, letting the user choose:
-  · **Path C (recommended · free) = get_social_voc_report_kit**: DataScaler returns an assemble-ready report kit in one call (module list + per-module real data & narrative + self-contained CSS + assembly hints), **free** (no points, no AI quota); you assemble it into a complete HTML report. High finished quality, zero cost — pick it for the vast majority of cases.
+  · **Path C (recommended · free) = get_social_voc_report_kit**: the upstream provider returns an assemble-ready report kit in one call (module list + per-module real data & narrative + self-contained CSS + assembly hints), **free** (no points, no AI quota); you assemble it into a complete HTML report. High finished quality, zero cost — pick it for the vast majority of cases.
   · **Path A (deep analysis · costs 600 points) = analyze_brand**: for an extra free-form deep strategy conclusion (e.g. "pick KOCs for me", "how should we respond to this PR situation"), the official AI runs one deep analysis. **You MUST state the price clearly: this path costs ~600 points.** Once the user has seen the cost and actively chose A, that counts as agreement to charge — call it directly, no second confirmation needed; but NEVER take path A on the user's behalf without them having seen the "600 points" quote.
   · **Path B (self-authored · free) = pull data with the free read-only tools and write it yourself**: when the user wants a fully custom structure/tone, or C is unavailable. Use the free read-only tools below to pull data and organize the report yourself.
   When the user has no preference, default to C. When C is chosen or used to enrich: after getting the kit you MUST assemble it into a COMPLETE HTML document, following its delivery.instruction + assemblyHints.systemPromptFragment + style (cssSnippet/tokens/classMap) + modules; do NOT pass off Markdown tables as the full report. Look up modules by id (overview/trends/voice/platforms), gate on schemaVersion via startsWith('social-voc-report-kit.v1'); render a degraded/failed module's existing data degraded. Precondition: brand must have collected data; if data not ready / refresh in progress, refresh + get_refresh_progress until done first. C is free — do not push the user to top up for the report itself.
@@ -135,7 +135,7 @@ Producing a VOC report (important): the goal is to make the customer feel the po
   · get_risk_alerts — high-risk negative comment quotes (with sentiment score / confidence / author / source post title / platform / URL), risk-keyword clusters, per-platform negative spikes. (Note: this tool's window is usually 72h, which may differ from the report's day range — flag it honestly.)
   · find_posts_about / search_brand_posts — real user posts/comments verbatim (with author, platform, real likes/views/reach), for both positive and negative samples.
   · get_voice_share — competitor share of voice (only meaningful when competitors are configured; if competitors is empty, mark "no competitors configured / unavailable").
-  · get_brand_summary — DataScaler's AI summary and recommendations, usable as a narrative skeleton.
+  · get_brand_summary — the upstream provider's AI summary and recommendations, usable as a narrative skeleton.
 [How to do Path B (self-authored)] When the user chose Path B (wants full customization), or C is unavailable (upstream not yet deployed / errors out): use the free read-only tools above to pull data and write the report yourself (metrics + real quotes + narrative), organizing structure and narrative yourself, completely free.
 [Use time trends] get_voice_share returns a **daily trend array** (per-day posts/mentions/share-of-voice/sentiment) — don't just read a static snapshot; use it to show how volume and sentiment change over time, with simple period-over-period deltas (e.g. "launch/first week vs last week"). Trends are more insightful than single points.
 [Visualize with charts] If producing an HTML report, chart the key data where you can (inline SVG, or pull in a library like ECharts): per-platform metric comparison, positive/negative driver-word TOP bar charts, volume/sentiment trend lines. Charts + tables + quotes together read far more clearly and professionally than plain text tables. Values in charts must also be the real returned values.
@@ -154,7 +154,7 @@ function buildServer(ctx: ToolContext): Server {
 
   const server = new Server(
     {
-      name: "pangolinfo-datascaler-mcp",
+      name: "pangolinfo-voc-mcp",
       version: SERVER_VERSION,
     },
     {
@@ -542,7 +542,7 @@ async function startStdio(): Promise<void> {
   // config file. Single user, single process.
   const auth = loadAuth();
   logger.info(`auth loaded from ${auth.source}; scrape_base=${auth.scrapeBase}`);
-  const client = new DataScalerClient({
+  const client = new UpstreamClient({
     apiKey: auth.apiKey,
     baseUrl: auth.scrapeBase,
   });
@@ -615,16 +615,16 @@ async function startHttp(): Promise<void> {
       info(msg) {
         // Don't log full keys — last 4 chars only.
         const tag = `k=…${apiKey.slice(-4)}`;
-        process.stderr.write(`[pangolinfo-datascaler-mcp][${tag}] ${msg}\n`);
+        process.stderr.write(`[pangolinfo-voc-mcp][${tag}] ${msg}\n`);
       },
       error(msg, err) {
         const tag = `k=…${apiKey.slice(-4)}`;
         const suffix = err ? `: ${err.stack ?? err.message}` : "";
-        process.stderr.write(`[pangolinfo-datascaler-mcp][${tag}][error] ${msg}${suffix}\n`);
+        process.stderr.write(`[pangolinfo-voc-mcp][${tag}][error] ${msg}${suffix}\n`);
       },
     };
 
-    const client = new DataScalerClient({
+    const client = new UpstreamClient({
       apiKey,
       baseUrl: scrapeBase,
     });

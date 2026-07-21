@@ -1,5 +1,5 @@
 /**
- * Pangolinfo DataScaler MCP - API Key & endpoint loader.
+ * Pangolinfo VOC MCP - API Key & endpoint loader.
  *
  * Per CONTRACT.md §3 — load order:
  *   1. CLI args:  --api-key=xxx  --api-base=xxx  --scrape-base=xxx
@@ -112,7 +112,7 @@ export function loadAuth(argv: readonly string[] = process.argv.slice(2)): Resol
   if (!apiKey) {
     throw new Error(
       [
-        "Pangolinfo DataScaler MCP 启动失败：未找到 API Key。",
+        "Pangolinfo VOC MCP 启动失败：未找到 API Key。",
         "请按以下任一方式提供：",
         "  1. 运行 installer（推荐）：会写入 ~/.pangolinfo/config.json",
         "  2. 设置环境变量：PANGOLINFO_API_KEY=pgl_xxxxxxxx",

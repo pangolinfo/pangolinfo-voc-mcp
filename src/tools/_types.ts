@@ -1,5 +1,5 @@
 /**
- * Pangolinfo DataScaler MCP - shared Tool / ToolContext types.
+ * Pangolinfo VOC MCP - shared Tool / ToolContext types.
  *
  * Per CONTRACT.md §2 — every tool exports an object matching this
  * shape. The server iterates the registry in `tools/index.ts` and
@@ -7,7 +7,7 @@
  */
 
 import type { z } from "zod";
-import type { DataScalerClient } from "../client.js";
+import type { UpstreamClient } from "../client.js";
 
 export interface ToolLogger {
   info(msg: string): void;
@@ -15,7 +15,7 @@ export interface ToolLogger {
 }
 
 export interface ToolContext {
-  client: DataScalerClient;
+  client: UpstreamClient;
   logger: ToolLogger;
   /**
    * Last 8 chars of the caller's API key (e.g. "…a1b2c3d4"), used only to

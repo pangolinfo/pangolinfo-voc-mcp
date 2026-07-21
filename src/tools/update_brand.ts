@@ -11,7 +11,7 @@ import type { Tool } from "./_types.js";
 import { englishKeywordSchema, fullBrandPlatformSchema } from "./_schemas.js";
 import { t } from "../i18n.js";
 
-// ⚠️ 字段名必须与 DataScaler Partner API 的 PATCH /brands/{id} 一致 ——
+// ⚠️ 字段名必须与 上游 Partner API 的 PATCH /brands/{id} 一致 ——
 // 之前用 keywords/monitorPlatforms 会被上游当作"无有效改动"而报 400 INVALID_INPUT。
 // 正确字段名:brandKeywords(品牌词) / categoryKeywords(品类词) / platforms / competitors
 // / brandName / description。这些字段名与上游一致,execute 直接透传。

@@ -1,16 +1,16 @@
-# pangolinfo-datascaler-mcp
+# pangolinfo-voc-mcp
 
 Pangolinfo 白标 **品牌社媒洞察(VOC) MCP**。本仓是 MCP 协议层,对 AI 客户端暴露品牌/话题社媒采集、读取和分析工具。
 
 ## 架构
 
-终端 AI 用户只看到 Pangolinfo。本仓不持有 DataScaler 凭证、不做扣费、不碰批发账户额度。凭证缓存、`externalUserId` 注入、积分扣费、错误映射和白标净化都在 Java 后端 `crawler-ext-service` 的 social 模块。
+终端 AI 用户只看到 Pangolinfo。本仓不持有任何上游凭证、不做扣费、不碰批发账户额度。凭证缓存、`externalUserId` 注入、积分扣费、错误映射和白标净化都在 Pangolinfo 后端。
 
 ```text
 AI 客户端
-  -> pangolinfo-datascaler-mcp (本仓, MCP 转发层)
-  -> crawler-ext-service /api/v1/social/* (Java scrapeapi, 扣费在此)
-  -> DataScaler Partner API
+  -> pangolinfo-voc-mcp (本仓, MCP 转发层)
+  -> Pangolinfo 后端 (扣费、凭证、白标净化均在此)
+  -> 上游数据供应商 API
 ```
 
 生产 MCP 地址:
@@ -46,13 +46,6 @@ prepare_space (免费出计划/estimatedPoints)
 
 ```text
 积分 = 品牌数 * 加权渠道单位 * 关键词数 * 页数 * 12
-```
-
-对应 DataScaler v1.1:
-
-```text
-credits = 品牌数 * 加权渠道单位 * 关键词数 * 页数 * 0.02
-积分 = credits * 600
 ```
 
 渠道单位:普通社媒渠道=1,`threads`=1,`reddit`=2,`amazon_reviews` 不参与采集公式。

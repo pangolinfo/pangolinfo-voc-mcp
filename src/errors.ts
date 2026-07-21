@@ -1,5 +1,5 @@
 /**
- * Pangolinfo DataScaler MCP - structured error type.
+ * Pangolinfo VOC MCP - structured error type.
  *
  * 每个返回给 AI 的错误都是 PangolinfoError(沿用主 MCP 同一个类名以统一语义)。
  * server 层把它翻成 { isError:true, content:[...] }。工具只 throw,不构造 envelope。
@@ -94,7 +94,7 @@ export function codeFromBizCode(bizCode: number): PangolinfoErrorCode {
     case 4030: // SERVICE_BUSY
       return "RATE_LIMIT";
 
-    // 93xx DataScaler 社媒洞察(社媒数据由 DataScaler 提供,Java 已把其错误映射成这些码)
+    // 93xx 社媒洞察(社媒数据由上游数据供应商提供,Java 已把其错误映射成这些码)
     case 9300: // SOCIAL_SERVICE_UNAVAILABLE — 上游/凭证/token 问题,临时
       return "SERVER";
     case 9301: // SOCIAL_BRAND_NOT_FOUND — 品牌不存在或不属于该用户

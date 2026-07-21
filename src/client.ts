@@ -1,12 +1,12 @@
 /**
- * Pangolinfo DataScaler MCP - HTTP client.
+ * Pangolinfo VOC MCP - HTTP client.
  *
  * ALL outbound HTTP goes through this class. Tools call
  * `ctx.client.post(path, body)` / `ctx.client.get(path)` and never touch
  * fetch directly. Auth header (Pangolinfo API Key) is injected here.
  *
  * 注意:本 client 调的是 Pangolinfo 自己的后端 /api/v1/social/*(scrapeBase),
- * 不是 DataScaler。DataScaler 凭证由后端持有,这里只带 Pangolinfo 用户的 key。
+ * 不是上游数据供应商。上游凭证由后端持有,这里只带 Pangolinfo 用户的 key。
  *
  * Uses Node 18+ built-in global `fetch`.
  */
@@ -14,7 +14,7 @@
 import { CONFIG } from "./config.js";
 import { PangolinfoError, codeFromHttpStatus, codeFromBizCode } from "./errors.js";
 
-export interface DataScalerClientOptions {
+export interface UpstreamClientOptions {
   apiKey: string;
   /** Base URL — social 接口部署在 scrapeBase 上的 /api/v1/social/*。 */
   baseUrl: string;
@@ -22,12 +22,12 @@ export interface DataScalerClientOptions {
   fetchImpl?: typeof fetch;
 }
 
-export class DataScalerClient {
+export class UpstreamClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
 
-  constructor(opts: DataScalerClientOptions) {
+  constructor(opts: UpstreamClientOptions) {
     this.apiKey = opts.apiKey;
     this.baseUrl = opts.baseUrl.replace(/\/+$/, "");
     this.fetchImpl = opts.fetchImpl ?? fetch;
@@ -64,7 +64,7 @@ export class DataScalerClient {
 
     // Client-side hard timeout.
     // 多数 social 端点请求-响应,refresh/setup 只返 jobId(秒回),只读秒回 —— 默认 60s 足够。
-    // 例外:analyze 是【同步】出报告(实测 30-60s+,DataScaler 实时跑 RAG+LLM),
+    // 例外:analyze 是【同步】出报告(实测 30-60s+,上游实时跑 RAG+LLM),
     //   需要工具侧传更长的 deadlineMs(见 analyze_brand.ts),否则会被这里掐断成假 NETWORK 超时。
     const DEFAULT_DEADLINE_MS = 60_000;
     const deadlineMs = deadlineOverrideMs && deadlineOverrideMs > 0 ? deadlineOverrideMs : DEFAULT_DEADLINE_MS;
