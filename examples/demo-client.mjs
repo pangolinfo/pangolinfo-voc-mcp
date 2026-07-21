@@ -130,7 +130,7 @@ async function callTool(name, args) {
   if (cmp) console.log(`   返回字段: ${Object.keys(cmp).join(", ")}`);
 
   console.log("\n\n━━━ ⑥ 深度分析(💰扣费,同步返回报告) ━━━");
-  const ana = await callTool("analyze_brand", {
+  const ana = await callTool("report_follow_up_analysis", {
     brandId: BID,
     question: "What do customers like and dislike about this brand?",
     days: 30,

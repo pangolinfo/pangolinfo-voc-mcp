@@ -37,12 +37,12 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
         en: "Default path = Knowledge Space (lightweight): prepare_space (plan + cost, free) → user confirms industry (required) + platforms + pages → create_space (create + first collection, charged). Use setup_brand (full brand) only for competitors/website/scheduled monitoring/Amazon reviews; Amazon reviews require amazonProducts.",
       }),
       charging: t({
-        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×加权渠道单位×关键词数×页数×12积分计费(普通渠道=1,Threads=1,Reddit=2),采集受理成功后按预估记账。analyze_brand 每次 600 积分(成功才扣)。prepare_space/get_brand_summary 免费。prepaid 扣积分余额;postpaid 不返回/不扣余额,按账期用量结算,单价相同。",
-        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2), recorded by estimate after collection acceptance. analyze_brand = 600 points on success. prepare_space/get_brand_summary are free. Prepaid deducts a point balance; postpaid returns/deducts no balance and is settled by billing-period usage at the same unit prices.",
+        zh: "只读全免费。采集类(create_space/refresh_brand/setup_brand)按品牌数×加权渠道单位×关键词数×页数×12积分计费(普通渠道=1,Threads=1,Reddit=2),采集受理成功后按预估记账。report_follow_up_analysis 每次 600 积分(成功才扣)。prepare_space/get_brand_summary 免费。prepaid 扣积分余额;postpaid 不返回/不扣余额,按账期用量结算,单价相同。",
+        en: "All reads free. Collection (create_space/refresh_brand/setup_brand) costs brandCount × weightedChannelUnits × keywordCount × pages × 12 points (normal channels=1, Threads=1, Reddit=2), recorded by estimate after collection acceptance. report_follow_up_analysis = 600 points on success. prepare_space/get_brand_summary are free. Prepaid deducts a point balance; postpaid returns/deducts no balance and is settled by billing-period usage at the same unit prices.",
       }),
       asyncModel: t({
-        zh: "采集是异步的:create_space/refresh_brand/setup_brand(首采)返回 jobId,用 get_refresh_progress(jobId) 轮询到 completed/partial 再读数据,或 wait_for_refresh 短等。绝不原地干等或重复发起。analyze_brand 是【同步】的,直接返回报告(可能耗时,耐心等)。",
-        en: "Collection is async: create_space/refresh_brand/setup_brand return a jobId; poll get_refresh_progress until completed/partial, or wait_for_refresh briefly. Never busy-wait or re-trigger. analyze_brand is SYNC — returns the report directly (may take a while).",
+        zh: "采集是异步的:create_space/refresh_brand/setup_brand(首采)返回 jobId,用 get_refresh_progress(jobId) 轮询到 completed/partial 再读数据,或 wait_for_refresh 短等。绝不原地干等或重复发起。report_follow_up_analysis 是【同步】的,直接返回报告(可能耗时,耐心等)。",
+        en: "Collection is async: create_space/refresh_brand/setup_brand return a jobId; poll get_refresh_progress until completed/partial, or wait_for_refresh briefly. Never busy-wait or re-trigger. report_follow_up_analysis is SYNC — returns the report directly (may take a while).",
       }),
       tools: [
         { name: "get_context", group: "context", charged: false },
@@ -67,25 +67,25 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
         { name: "get_voice_share", group: "data", charged: false },
         { name: "compare_competitors", group: "data", charged: false },
         { name: "get_risk_alerts", group: "data", charged: false },
-        { name: "analyze_brand", group: "analyze", charged: true, async: false },
+        { name: "report_follow_up_analysis", group: "analyze", charged: true, async: false },
         { name: "get_brand_summary", group: "analyze", charged: false },
       ],
       workflows: [
         t({
-          zh: "看某品牌/话题在讨论什么(默认):prepare_space(出计划+费用) → 确认行业+渠道+页数 → create_space(扣费,返 jobId) → wait_for_refresh/get_refresh_progress(等采集) → get_brand_metrics/analyze_brand。",
-          en: "Explore a brand/topic (default): prepare_space → confirm industry+platforms+pages → create_space (charged, jobId) → wait_for_refresh/get_refresh_progress → get_brand_metrics/analyze_brand.",
+          zh: "看某品牌/话题在讨论什么(默认):prepare_space(出计划+费用) → 确认行业+渠道+页数 → create_space(扣费,返 jobId) → wait_for_refresh/get_refresh_progress(等采集) → get_brand_metrics/report_follow_up_analysis。",
+          en: "Explore a brand/topic (default): prepare_space → confirm industry+platforms+pages → create_space (charged, jobId) → wait_for_refresh/get_refresh_progress → get_brand_metrics/report_follow_up_analysis.",
         }),
         t({
           zh: "刷新已有品牌:diagnose_brand(看要不要采) → refresh_brand(扣费) → get_refresh_progress(等完成) → 读数据。",
           en: "Refresh existing: diagnose_brand → refresh_brand (charged) → get_refresh_progress → read data.",
         }),
         t({
-          zh: "深度问答:确认品牌已采集完成 → analyze_brand(600 积分,同步返回报告)。一句话总结用 get_brand_summary(免费)。",
-          en: "Deep Q&A: ensure data → analyze_brand (600 points, sync). Quick summary: get_brand_summary (free).",
+          zh: "深度问答:确认品牌已采集完成 → report_follow_up_analysis(600 积分,同步返回报告)。一句话总结用 get_brand_summary(免费)。",
+          en: "Deep Q&A: ensure data → report_follow_up_analysis (600 points, sync). Quick summary: get_brand_summary (free).",
         }),
         t({
-          zh: "产出 VOC 报告(重要):**默认走 analyze_brand**(官方 AI 一次性出完整报告,扣 600 积分)——⚠️ 调用前必须先向用户说明会花约 600 积分并得到同意,不要擅自扣费。拿到官方报告后,推荐再用免费只读工具补强(补真实引文/分平台明细/72h 高风险评论/图表):get_brand_metrics(总量+分平台+正负驱动词 TOP)、get_brand_sentiment、get_risk_alerts(高风险评论+情感分/置信度/作者/帖子/链接,窗口常 72h)、find_posts_about/search_brand_posts(真实原话+作者+平台+互动数)、get_voice_share(竞品声量,仅配竞品时有)、get_brand_summary。若用户不愿花积分,就只用这些免费工具自产一份(兜底,免费)。**铁律:数字/原话/互动数一律用工具真实返回值,严禁编造/估算/补全;拿不到标「未返回」。**",
-          en: "Produce a VOC report (important): **default to analyze_brand** (official AI produces a complete report in one shot, costs 600 points) — ⚠️ before calling, you MUST tell the user it will spend ~600 points and get agreement; don't charge on their behalf. After getting the official report, recommended to enrich it with free read-only tools (add real quotes / per-platform detail / 72h high-risk comments / charts): get_brand_metrics (totals + per-platform + pos/neg driver words TOP), get_brand_sentiment, get_risk_alerts (high-risk comments + sentiment score/confidence/author/post/URL, window usually 72h), find_posts_about/search_brand_posts (real quotes + author + platform + engagement), get_voice_share (competitor SOV, only when competitors configured), get_brand_summary. If the user won't spend points, self-produce a report from these free tools only (fallback, free). **Hard rule: every number/quote/engagement figure must be the tool's real returned value — never fabricate/estimate/fill in; if not returned, mark 'not returned'.**",
+          zh: "产出 VOC 报告(重要):**默认走 report_follow_up_analysis**(官方 AI 一次性出完整报告,扣 600 积分)——⚠️ 调用前必须先向用户说明会花约 600 积分并得到同意,不要擅自扣费。拿到官方报告后,推荐再用免费只读工具补强(补真实引文/分平台明细/72h 高风险评论/图表):get_brand_metrics(总量+分平台+正负驱动词 TOP)、get_brand_sentiment、get_risk_alerts(高风险评论+情感分/置信度/作者/帖子/链接,窗口常 72h)、find_posts_about/search_brand_posts(真实原话+作者+平台+互动数)、get_voice_share(竞品声量,仅配竞品时有)、get_brand_summary。若用户不愿花积分,就只用这些免费工具自产一份(兜底,免费)。**铁律:数字/原话/互动数一律用工具真实返回值,严禁编造/估算/补全;拿不到标「未返回」。**",
+          en: "Produce a VOC report (important): **default to report_follow_up_analysis** (official AI produces a complete report in one shot, costs 600 points) — ⚠️ before calling, you MUST tell the user it will spend ~600 points and get agreement; don't charge on their behalf. After getting the official report, recommended to enrich it with free read-only tools (add real quotes / per-platform detail / 72h high-risk comments / charts): get_brand_metrics (totals + per-platform + pos/neg driver words TOP), get_brand_sentiment, get_risk_alerts (high-risk comments + sentiment score/confidence/author/post/URL, window usually 72h), find_posts_about/search_brand_posts (real quotes + author + platform + engagement), get_voice_share (competitor SOV, only when competitors configured), get_brand_summary. If the user won't spend points, self-produce a report from these free tools only (fallback, free). **Hard rule: every number/quote/engagement figure must be the tool's real returned value — never fabricate/estimate/fill in; if not returned, mark 'not returned'.**",
         }),
       ],
       notes: [
@@ -102,8 +102,8 @@ Returns: { version, product, onboarding, charging, asyncModel, tools[], workflow
           en: "Supported platforms: default 7 social channels tiktok/instagram/youtube/x/facebook/pinterest/trustpilot (pre-selected in prepare_space, each = 1 channel unit); optional threads (=1) and reddit (=2, double channel units, off by default); amazon_reviews is not social + needs an ASIN or Amazon product URL, excluded from the Knowledge Space flow (use setup_brand + amazonProducts for Amazon reviews). Billing uses channel units: 12 points per brand/channel-unit/keyword/page. For unsupported platforms (e.g. Xiaohongshu/Weibo/LinkedIn) tell the user they're unsupported and only suggest alternatives from the supported list.",
         }),
         t({
-          zh: "【数据就绪门禁 + refreshing 锁绕行】dataReady = 最近一次采集 completed **且** 采到帖子数>0(采到 0 帖仍算 stale、非故障,常见于新建空品牌或关键词在数据源无内容)。读类工具/analyze_brand 前应确保就绪:数据未就绪会报 DATA_NOT_READY、采集在跑会报 REFRESH_IN_PROGRESS —— 这两种都是可等待的,先 get_refresh_progress 等 completed 再读,不要当失败。**重要:若某平台(如 TikTok)采集卡住,整个品牌会被锁在 refreshing 状态,此时帖子级读取(find_posts_about / search_brand_posts)会被阻塞报错,但聚合类读取(get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics)和 analyze_brand 通常不受影响 —— 别卡在帖子检索失败上,改用这些绕过锁先出能出的部分。**",
-          en: "[Data-readiness gate + refreshing-lock workaround] dataReady = last collection completed AND posts>0 (0 posts still counts as stale, NOT a failure — common for a brand-new empty space or keywords with no content in the source). Ensure readiness before read tools / analyze_brand: not-ready → DATA_NOT_READY, collection running → REFRESH_IN_PROGRESS — both are waitable, poll get_refresh_progress until completed then read; don't treat them as failures. **Important: if one platform (e.g. TikTok) is stuck collecting, the whole brand gets locked in the refreshing state; post-level reads (find_posts_about / search_brand_posts) are then blocked and error out, but aggregate reads (get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics) and analyze_brand usually still work — don't get stuck on post-search failing; use those to produce what you can.**",
+          zh: "【数据就绪门禁 + refreshing 锁绕行】dataReady = 最近一次采集 completed **且** 采到帖子数>0(采到 0 帖仍算 stale、非故障,常见于新建空品牌或关键词在数据源无内容)。读类工具/report_follow_up_analysis 前应确保就绪:数据未就绪会报 DATA_NOT_READY、采集在跑会报 REFRESH_IN_PROGRESS —— 这两种都是可等待的,先 get_refresh_progress 等 completed 再读,不要当失败。**重要:若某平台(如 TikTok)采集卡住,整个品牌会被锁在 refreshing 状态,此时帖子级读取(find_posts_about / search_brand_posts)会被阻塞报错,但聚合类读取(get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics)和 report_follow_up_analysis 通常不受影响 —— 别卡在帖子检索失败上,改用这些绕过锁先出能出的部分。**",
+          en: "[Data-readiness gate + refreshing-lock workaround] dataReady = last collection completed AND posts>0 (0 posts still counts as stale, NOT a failure — common for a brand-new empty space or keywords with no content in the source). Ensure readiness before read tools / report_follow_up_analysis: not-ready → DATA_NOT_READY, collection running → REFRESH_IN_PROGRESS — both are waitable, poll get_refresh_progress until completed then read; don't treat them as failures. **Important: if one platform (e.g. TikTok) is stuck collecting, the whole brand gets locked in the refreshing state; post-level reads (find_posts_about / search_brand_posts) are then blocked and error out, but aggregate reads (get_brand_summary / get_brand_sentiment / get_risk_alerts / get_brand_metrics) and report_follow_up_analysis usually still work — don't get stuck on post-search failing; use those to produce what you can.**",
         }),
         t({
           zh: "【用语与命名】对用户一律称「知识空间」,不要说「品牌位/品牌位额度」。品牌名有官方英文写法时优先用官方英文名。知识空间的社媒发现关键词必须用英文(含中日韩字符的词会被上游丢弃,中文话题请译成英文)。",

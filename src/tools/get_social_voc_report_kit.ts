@@ -79,7 +79,7 @@ export const getSocialVocReportKit: Tool<typeof inputSchema> = {
 前置:品牌需已采集完成 —— 若报 data not ready / refresh in progress,先 refresh_brand 并用 get_refresh_progress 等完成再调。
 Returns: data = { schemaVersion, delivery, meta, reportSpec, style, assemblyHints, modules[] }。
 Use when: 用户要"出一份社媒 VOC 报告 / 导出 HTML 报告 / 类似 social 洞察页的报告"。这是默认首选。
-Don't use: 只要单点指标(get_brand_metrics 等免费只读);想要额外的自由提问式深度策略结论且用户愿意花积分(analyze_brand,扣 600 积分,调前先确认)。免费能力,不要引导用户为报告本身充值。`,
+Don't use: 只要单点指标(get_brand_metrics 等免费只读);想要额外的自由提问式深度策略结论且用户愿意花积分(report_follow_up_analysis,扣 600 积分,调前先确认)。免费能力,不要引导用户为报告本身充值。`,
     en: `[VOC report kit · FREE · default first choice for reports] Get an assemble-ready social VOC report kit in one call: reportSpec (module list) + per-module structured data & narrative + self-contained CSS + assembly hints. Free — no points, no AI quota.
 [Delivery hard rule] After getting the kit you MUST assemble it into a COMPLETE HTML document (a \`\`\`html code block or a .html file artifact) for the user; do NOT pass off Markdown headings/tables as the full report.
 [How to assemble] Hand your own model the returned delivery.instruction + assemblyHints.systemPromptFragment + style (cssSnippet/tokens/classMap) + reportSpec + modules together, and generate the full HTML in one shot. Look up modules by id (overview/trends/voice/platforms), do NOT hardcode array indices; gate on schemaVersion via startsWith('social-voc-report-kit.v1').
@@ -88,7 +88,7 @@ Don't use: 只要单点指标(get_brand_metrics 等免费只读);想要额外的
 Precondition: brand must have collected data — if 'data not ready' / 'refresh in progress', run refresh_brand and wait via get_refresh_progress first.
 Returns: data = { schemaVersion, delivery, meta, reportSpec, style, assemblyHints, modules[] }.
 Use when: user wants "a social VOC report / an exported HTML report / a report like the social insights page". This is the default first choice.
-Don't use: for single metrics (get_brand_metrics etc., free read-only); for an extra free-form deep strategy analysis when the user is willing to spend points (analyze_brand, 600 points, confirm first). This is free — do not push the user to top up for the report itself.`,
+Don't use: for single metrics (get_brand_metrics etc., free read-only); for an extra free-form deep strategy analysis when the user is willing to spend points (report_follow_up_analysis, 600 points, confirm first). This is free — do not push the user to top up for the report itself.`,
   }),
   inputSchema,
   async execute(input, ctx) {

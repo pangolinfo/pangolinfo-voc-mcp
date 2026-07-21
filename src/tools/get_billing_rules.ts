@@ -76,8 +76,8 @@ Returns: { formula, unitPrice, factors, examples, analyzeBrand, free }.`,
         }),
       ],
       analyzeBrand: t({
-        zh: "analyze_brand(AI 深度分析):600 积分/次,成功才扣",
-        en: "analyze_brand (AI deep analysis): 600 points/call, charged only on success",
+        zh: "report_follow_up_analysis(AI 深度分析):600 积分/次,成功才扣",
+        en: "report_follow_up_analysis (AI deep analysis): 600 points/call, charged only on success",
       }),
       billingMode: t({
         zh: "两种计费模式并存,当前用户是哪种见 get_context 返回的 result.data.billingMode。prepaid:扣 Pangolinfo 积点(充值积点即用,余额不足报额度不足);postpaid:不扣也不展示积分余额,按账期用量月底结算(有账期用量上限,超上限报额度不足)。两种模式的采集/分析单价相同(本工具公式),仅结算方式不同。",

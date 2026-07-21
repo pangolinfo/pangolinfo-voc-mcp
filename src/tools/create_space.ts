@@ -99,7 +99,7 @@ export const createSpace: Tool<typeof inputSchema> = {
 ⚠️ 前置:必须先 prepare_space 拿到 industryCandidates,让用户选定 **industries(必填)** 再调本工具;缺 industries 后端报 400。
 ⚠️ 知识空间不支持 Amazon Reviews;要 Amazon 评论请改用 setup_brand,并传 monitorPlatforms:['amazon_reviews'] + amazonProducts[{asin 或 url}]。
 异步:立即返回 spaceId + 采集 jobId,**不等采集完成**(采集是异步长任务,通常 15–45 分钟,~90% 在 3 小时内完成)。
-⚠️ 采集等待纪律(别踩坑):**不要**写外部轮询脚本去等(网络抖动会中断);**不要**建 host 侧一次性/定时自动化任务去等(不可靠、常静默不触发)。正确姿势:① 告诉用户预计 15–45 分钟(~90% 在 3 小时内完成);② 不要空转干等,本轮可先结束或做别的只读事;③ 让用户下次回来发一句「查 VOC 进度」,那时再用 get_refresh_progress(jobId) 查,完成后再读数据/analyze_brand;④ 只有想在同一轮里稍等片刻,才用 wait_for_refresh(≤20s,超时即返回,别 while 循环反复调)。
+⚠️ 采集等待纪律(别踩坑):**不要**写外部轮询脚本去等(网络抖动会中断);**不要**建 host 侧一次性/定时自动化任务去等(不可靠、常静默不触发)。正确姿势:① 告诉用户预计 15–45 分钟(~90% 在 3 小时内完成);② 不要空转干等,本轮可先结束或做别的只读事;③ 让用户下次回来发一句「查 VOC 进度」,那时再用 get_refresh_progress(jobId) 查,完成后再读数据/report_follow_up_analysis;④ 只有想在同一轮里稍等片刻,才用 wait_for_refresh(≤20s,超时即返回,别 while 循环反复调)。
 空间底层就是品牌:返回的 spaceId = brandId,后续所有按 brandId 的工具都用它。
 Returns: data{ spaceId(=brandId), keywords[], platforms[], maxPages, collection{jobId,total,...}, billing{estimatedPoints,chargedOn:'acceptance' 或类似受理时点} }。(注:返回不含预计耗时字段,耗时按下方 15–45 分钟固定口径向用户说明即可。)
 Use when: prepare_space 之后、用户已确认行业+渠道+页数,并已同意预估费用。
@@ -111,7 +111,7 @@ Creating a space only consumes 1 space slot (no point charge itself); collection
 ⚠️ Precondition: call prepare_space first to get industryCandidates, have the user pick **industries (required)**, then call this. 400 if industries missing.
 ⚠️ Knowledge Spaces do not support Amazon Reviews; for Amazon reviews use setup_brand with monitorPlatforms:['amazon_reviews'] + amazonProducts[{asin or url}].
 Async: returns spaceId + collection jobId immediately, does NOT wait (collection is a long async job, usually 15–45 min, ~90% done within 3h).
-⚠️ Collection wait discipline (avoid these traps): do NOT write an external polling script to wait (a network blip kills it); do NOT create a host-side one-shot/scheduled automation to wait (unreliable, often silently never fires). Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② do NOT busy-wait — end this turn or do other read-only work; ③ have the user come back and say "check VOC progress", then call get_refresh_progress(jobId), and read data / analyze_brand once done; ④ only to wait a moment within the SAME turn, use wait_for_refresh (≤20s, returns on timeout — do not call it in a while loop).
+⚠️ Collection wait discipline (avoid these traps): do NOT write an external polling script to wait (a network blip kills it); do NOT create a host-side one-shot/scheduled automation to wait (unreliable, often silently never fires). Correct pattern: ① tell the user it takes ~15–45 min (~90% within 3h); ② do NOT busy-wait — end this turn or do other read-only work; ③ have the user come back and say "check VOC progress", then call get_refresh_progress(jobId), and read data / report_follow_up_analysis once done; ④ only to wait a moment within the SAME turn, use wait_for_refresh (≤20s, returns on timeout — do not call it in a while loop).
 A space IS a brand: returned spaceId = brandId; use it for all brandId-based tools.
 Returns: data{ spaceId(=brandId), keywords[], platforms[], maxPages, collection{jobId,total,...}, billing{estimatedPoints,chargedOn:'acceptance' or similar} }. (Note: the response carries NO ETA field — state the duration to the user using the fixed 15–45 min figure below.)
 Use when: after prepare_space, once the user confirmed industry + platforms + pages AND approved the estimated cost.

@@ -21,14 +21,14 @@ https://voc.pangolinfo.com/mcp?api_key=<Pangolinfo JWT/API key>
 
 ## 工具
 
-当前共 25 个工具:
+当前共 26 个工具:
 
 - 上下文/规则: `social_capabilities`, `get_context`, `get_billing_rules`, `suggest_next_actions`, `explain_error`
 - 知识空间: `prepare_space`, `create_space`
 - 品牌管理: `list_brands`, `get_brand`, `prepare_brand_onboarding`, `setup_brand`, `update_brand`
 - 采集: `diagnose_brand`, `refresh_brand`, `get_refresh_progress`, `wait_for_refresh`
 - 数据读取: `get_brand_metrics`, `search_brand_posts`, `find_posts_about`, `get_brand_sentiment`, `get_voice_share`, `compare_competitors`, `get_risk_alerts`
-- 分析: `analyze_brand`, `get_brand_summary`
+- 分析: `report_follow_up_analysis`, `get_brand_summary`
 
 默认接入路径是知识空间:
 
@@ -37,7 +37,7 @@ prepare_space (免费出计划/estimatedPoints)
   -> 用户确认行业 + 平台 + 页数
   -> create_space (扣费并返回 spaceId + jobId)
   -> get_refresh_progress / wait_for_refresh
-  -> 读取数据或 analyze_brand
+  -> 读取数据或 report_follow_up_analysis
 ```
 
 ## 计费
@@ -50,7 +50,7 @@ prepare_space (免费出计划/estimatedPoints)
 
 渠道单位:普通社媒渠道=1,`threads`=1,`reddit`=2,`amazon_reviews` 不参与采集公式。
 
-`analyze_brand` 是同步深度分析,成功按 600 积分/次记账。`get_brand_summary` 免费。
+`report_follow_up_analysis` 是同步深度分析,成功按 600 积分/次记账。`get_brand_summary` 免费。
 
 ## 平台
 

@@ -1,6 +1,6 @@
 {
   "name": "pangolinfo-voc-mcp",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Pangolinfo VOC MCP server - white-label brand social-media insight tools (brands, refresh, posts, sentiment, voice-share, competitors, risk-alerts, analyze) for AI assistants via Model Context Protocol.",
   "type": "module",
   "license": "MIT",

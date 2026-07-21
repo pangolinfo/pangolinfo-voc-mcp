@@ -59,7 +59,7 @@ scripts\window\deploy-mcp.cmd 0.4.1
 ```
 [pangolinfo-voc-mcp] locale=en version=0.4.1
 [pangolinfo-voc-mcp] transport=http
-[pangolinfo-voc-mcp] http server listening on :3000; endpoint=/mcp health=/health; 25 tool(s) registered
+[pangolinfo-voc-mcp] http server listening on :3000; endpoint=/mcp health=/health; 26 tool(s) registered
 ```
 
 **拿新 SLB 的公网 IP**:ACK 控制台 → **网络 → 服务** → 找 `datascaler-voc`(type=LoadBalancer)→ **外部 IP 地址(External IP)** 那一列,记下这个 IP(下一步 DNS 用)。SLB 由 ACK 自动创建管理,几十秒内出 IP。
@@ -87,12 +87,12 @@ DNS 生效后(Cloudflare 通常几分钟):
 curl https://voc.pangolinfo.com/health
 # 期望: {"status":"ok","version":"0.4.1","toolCount":26}
 
-# 2. 列工具 (25 个)
+# 2. 列工具 (26 个)
 curl -X POST "https://voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
-# 期望: 25 个 tool
+# 期望: 26 个 tool
 
 # 3. 真调一次免费工具
 curl -X POST "https://voc.pangolinfo.com/mcp?api_key=pgl_xxx" \
